@@ -1,4 +1,4 @@
-package ua.nure.lnu2020.ofp;
+package ua.nure.lnu2020.ofp_4dv507;
 
 public class Main {
 
