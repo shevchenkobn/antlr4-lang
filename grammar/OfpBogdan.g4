@@ -7,34 +7,116 @@ grammar OfpBogdan;
     package ua.nure.lnu2020.ofp_4dv507.bogdan;
 }
 
-start : stat+ ;
+start : funcDef* mainDef funcDef* ;
 
-stat : intExpr SC
-     | assign
-     ;
+mainDef : VOID MAIN LRB RRB block ;
+funcDef : (VOID | datatype) ID LRB (varDef (COMMA varDef)*)? RRB block ;
 
-intExpr :  rBExpr
-        | intExpr (MULT | DIV) intExpr
-        | intExpr (PLUS | MINUS) intExpr
-        | (INT | ID)
-     ;
+datatype : DT_INT | DT_FLOAT | DT_CHAR | DT_BOOL | DT_STR | DT_INT_ARR | DT_FLOAT_ARR | DT_CHAR_ARR ;
+varDef : intDef | floatDef | charDef | boolDef | strDef | intArrDef | floatArrDef | charArrDef ;
 
-rBExpr : LRB intExpr RRB ;
+if : IF LRB boolExpr RRB (stat | block) ;
+while : WHILE LRB boolExpr RRB (stat | block) ; // FIXME: continue? break?
 
-assign : ID ASSIGN intExpr SC ;
+block : LCB stat+ RCB ;
 
-// Below is checked TODO: [, ] as literal
+stat : scStat | if | while ;
 
-// arrIndex : ID
-newArr : 'new' WS+ (DT_INT | DT_FLOAT | DT_CHAR)'['UINT']' ;
-lengthRead : (intArr | floatArr | charArr | STRING | ID) LENGTH ;
+scStat : (
+    | intDecl
+    | floatDecl
+    | charDecl
+    | boolDecl
+    | strDecl
+    | intArrDecl
+    | floatArrDecl
+    | charArrDecl
+    | assign
+    | arrAssign
+    | funcCall
+    | returnExpr
+    | printExpr
+    | printlnExpr) SC ;
 
-intArr : LCB INT (','INT)* RCB ;
-floatArr : LCB FLOAT (','FLOAT)* RCB ;
-charArr : LCB Q_CHAR (','Q_CHAR)* RCB ;
+assign : ID ASSIGN expr ;
+arrAssign : ID LSB intExpr RSB ASSIGN intExpr
+    | floatExpr
+    | charExpr;
+funcCall : ID LRB (expr (COMMA expr)*)? RRB ;
+returnExpr : RETURN expr ;
 
-LENGTH : '.length' ;
+expr : boolExpr
+    | intExpr
+    | floatExpr
+    | charExpr
+    | strExpr
+    | intArrExpr
+    | floatArrExpr
+    | charArrExpr ;
+
+printExpr : PRINT LRB printable RRB ;
+printlnExpr : PRINTLN LRB printable RRB ;
+printable : intExpr | floatExpr | boolExpr | charExpr | strExpr ;
+
+intDecl : intDef ASSIGN intExpr? ;
+floatDecl : floatDef ASSIGN floatExpr? ;
+charDecl : charDef ASSIGN charExpr? ;
+boolDecl : boolDef ASSIGN boolExpr? ;
+strDecl : strDef ASSIGN strExpr? ;
+intArrDecl : intArrDef ASSIGN intArrExpr? ;
+floatArrDecl : floatArrDef ASSIGN floatArrExpr? ;
+charArrDecl : charArrDef ASSIGN charArrExpr? ;
+
+intDef : DT_INT ID ;
+floatDef : DT_FLOAT ID ;
+charDef : DT_CHAR ID ;
+boolDef : DT_BOOL ID ;
+strDef : DT_STR ID ;
+intArrDef : DT_INT_ARR ID ;
+floatArrDef : DT_FLOAT_ARR ID ;
+charArrDef : DT_CHAR_ARR ID ;
+
+intArrExpr : intArr | newIntArr | ID ;
+floatArrExpr : floatArr | newFloatArr | ID ;
+charArrExpr : charArr | newCharArr | ID ;
+
+intArr : LCB INT (COMMA intExpr)* RCB ;
+floatArr : LCB FLOAT (COMMA floatExpr)* RCB ;
+charArr : LCB Q_CHAR (COMMA charExpr)* RCB ;
+
+boolExpr : intExpr EQ intExpr
+    | intExpr GT intExpr
+    | intExpr LT intExpr
+    | floatExpr EQ floatExpr
+    | floatExpr GT floatExpr
+    | floatExpr LT floatExpr
+    | charExpr EQ charExpr
+    | (TRUE | FALSE);
+intExpr :  LRB intExpr RRB
+    | intExpr (MULT | DIV) intExpr
+    | intExpr (PLUS | MINUS) intExpr
+    | lengthRead
+    | (INT | ID);
+floatExpr :  LRB floatExpr RRB
+    | floatExpr (MULT | DIV) floatExpr
+    | floatExpr (PLUS | MINUS) floatExpr
+    | (FLOAT | ID);
+charExpr : Q_CHAR | ID ;
+strExpr : STRING | ID ;
+
+newIntArr : NEW DT_INT LSB intExpr RSB ;
+newFloatArr : NEW DT_FLOAT LSB intExpr RSB ;
+newCharArr : NEW DT_CHAR LSB intExpr RSB ;
+lengthRead : (intArr | floatArr | charArr | STRING | ID) DOT LENGTH ;
+
+NEW : 'new' ;
+LENGTH : 'length' ;
+DOT : '.' ;
+COMMA : ',' ;
 ASSIGN : '=' ;
+EQ : '==' ;
+GT : '>' ;
+LT : '<' ;
 PLUS : '+' ;
 MINUS : '-' ;
 MULT : '*' ;
@@ -43,20 +125,28 @@ LCB : '{' ; // Left Curly Bracket
 RCB : '}' ;
 LRB : '(' ; // Left Round Bracket
 RRB : ')' ;
+LSB : '[' ; // Left Square Bracket
+RSB : ']' ;
 
-DT_ARR : (DT_INT | DT_FLOAT | DT_CHAR)'[]';
+DT_INT_ARR : DT_INT LSB RSB ;
+DT_FLOAT_ARR : DT_FLOAT LSB RSB ;
+DT_CHAR_ARR : DT_CHAR LSB RSB ;
 DT_BOOL : 'bool' ;
 DT_STR : 'string' ;
 DT_INT : 'int' ;
 DT_FLOAT : 'float' ;
 DT_CHAR : 'char' ;
 
+RETURN : 'return' ;
+IF : 'if' ;
+WHILE : 'while' ;
+VOID : 'void' ;
+MAIN : 'main' ;
+PRINT : 'print' ;
+PRINTLN : 'println' ;
 TRUE : 'true' ;
 FALSE : 'false' ;
-INT : ('-'?POSITIVE_INT) | ZERO ;
-UINT : POSITIVE_INT | ZERO ;
-ZERO : '0' ;
-POSITIVE_INT : ('1'..'9')('0'..'9')* ;
+INT : ('-'?('1'..'9')('0'..'9')*) | '0' ;
 FLOAT : ('-'?(('1'..'9')('0'..'9')*|'0')'.'(('0'..'9')*('1'..'9')('0'..'9')*)) | '0''.''0'+ ;
 STRING : '"' CHAR+ '"' ;
 Q_CHAR : '\'' CHAR '\'' ; // Quoted char
@@ -65,4 +155,4 @@ ID : ('a'..'z'|'A'..'Z')+ ;
 
 SC : ';' ;
 
-WS : [ \t\r\n]+ -> skip ; // TODO: verify on comments
+WS : [ \t\r\n]+ -> skip ; // TODO: verify on comments and between
