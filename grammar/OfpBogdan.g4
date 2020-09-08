@@ -58,6 +58,7 @@ printExpr : PRINT LRB printable RRB ;
 printlnExpr : PRINTLN LRB printable RRB ;
 printable : intExpr | floatExpr | boolExpr | charExpr | strExpr ;
 
+// TODO: can be unassigned?
 intDecl : intDef ASSIGN intExpr? ;
 floatDecl : floatDef ASSIGN floatExpr? ;
 charDecl : charDef ASSIGN charExpr? ;
@@ -80,9 +81,14 @@ intArrExpr : intArr | newIntArr | ID ;
 floatArrExpr : floatArr | newFloatArr | ID ;
 charArrExpr : charArr | newCharArr | ID ;
 
-intArr : LCB INT (COMMA intExpr)* RCB ;
-floatArr : LCB FLOAT (COMMA floatExpr)* RCB ;
-charArr : LCB Q_CHAR (COMMA charExpr)* RCB ;
+intArr : LCB intExpr (COMMA intExpr)* RCB ;
+floatArr : LCB floatExpr (COMMA floatExpr)* RCB ;
+charArr : LCB charExpr (COMMA charExpr)* RCB ;
+
+newIntArr : NEW DT_INT LSB intExpr RSB ;
+newFloatArr : NEW DT_FLOAT LSB intExpr RSB ;
+newCharArr : NEW DT_CHAR LSB intExpr RSB ;
+lengthRead : (intArr | floatArr | charArr | STRING | ID) DOT LENGTH ;
 
 boolExpr : intExpr EQ intExpr
     | intExpr GT intExpr
@@ -91,7 +97,7 @@ boolExpr : intExpr EQ intExpr
     | floatExpr GT floatExpr
     | floatExpr LT floatExpr
     | charExpr EQ charExpr
-    | (TRUE | FALSE);
+    | (TRUE | FALSE | ID);
 intExpr :  LRB intExpr RRB
     | intExpr (MULT | DIV) intExpr
     | intExpr (PLUS | MINUS) intExpr
@@ -103,11 +109,6 @@ floatExpr :  LRB floatExpr RRB
     | (FLOAT | ID);
 charExpr : Q_CHAR | ID ;
 strExpr : STRING | ID ;
-
-newIntArr : NEW DT_INT LSB intExpr RSB ;
-newFloatArr : NEW DT_FLOAT LSB intExpr RSB ;
-newCharArr : NEW DT_CHAR LSB intExpr RSB ;
-lengthRead : (intArr | floatArr | charArr | STRING | ID) DOT LENGTH ;
 
 NEW : 'new' ;
 LENGTH : 'length' ;
