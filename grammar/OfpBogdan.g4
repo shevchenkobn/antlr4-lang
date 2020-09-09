@@ -10,17 +10,17 @@ grammar OfpBogdan;
 start : funcDef* mainDef funcDef* ;
 
 mainDef : VOID MAIN LRB RRB block ;
-funcDef : (VOID | datatype) ID LRB (varDef (COMMA varDef)*)? RRB block ;
+funcDef : ((VOID | datatype) ID LRB (varDef (COMMA varDef)*)? RRB block) | COMMENT ;
 
 datatype : DT_INT | DT_FLOAT | DT_CHAR | DT_BOOL | DT_STR | DT_INT_ARR | DT_FLOAT_ARR | DT_CHAR_ARR ;
 varDef : intDef | floatDef | charDef | boolDef | strDef | intArrDef | floatArrDef | charArrDef ;
 
-if : IF LRB boolExpr RRB (stat | block) (ELSE (stat | block))? ;
-while : WHILE LRB boolExpr RRB (stat | block) ; // FIXME: continue? break?
+ifDef : IF LRB boolExpr RRB (stat | block) (ELSE (stat | block))? ;
+whileDef : WHILE LRB boolExpr RRB (stat | block) ; // FIXME: continue? break?
 
 block : LCB stat+ RCB ;
 
-stat : scStat | if | while ;
+stat : scStat | ifDef | whileDef | COMMENT ;
 
 scStat : (
     | intDecl
@@ -32,16 +32,18 @@ scStat : (
     | floatArrDecl
     | charArrDecl
     | assign
-    | arrAssign
+    | arrSet
     | funcCall
     | returnExpr
     | printExpr
     | printlnExpr) SC ;
 
 assign : ID ASSIGN (expr | funcCall) ;
-arrAssign : ID LSB intExpr RSB ASSIGN intExpr
-    | floatExpr
+arrSet : arrGet ASSIGN
+    floatExpr
+    | intExpr
     | charExpr;
+arrGet : ID LSB intExpr RSB ;
 funcCall : ID LRB (expr (COMMA expr)*)? RRB ;
 returnExpr : RETURN expr ;
 
@@ -56,7 +58,7 @@ expr : boolExpr
 
 printExpr : PRINT LRB printable RRB ;
 printlnExpr : PRINTLN LRB printable RRB ;
-printable : intExpr | floatExpr | boolExpr | charExpr | strExpr | funcCall ;
+printable : funcCall | arrGet | intExpr | floatExpr | boolExpr | charExpr | strExpr ;
 
 intDecl : intDef (ASSIGN (intExpr | funcCall))? ;
 floatDecl : floatDef (ASSIGN (floatExpr | funcCall))? ;
@@ -87,7 +89,7 @@ charArr : LCB charExpr (COMMA charExpr)* RCB ;
 newIntArr : NEW DT_INT LSB intExpr RSB ;
 newFloatArr : NEW DT_FLOAT LSB intExpr RSB ;
 newCharArr : NEW DT_CHAR LSB intExpr RSB ;
-lengthRead : (intArr | floatArr | charArr | STRING | ID) DOT LENGTH ;
+lengthRead : (intArr | floatArr | charArr | STRING | ID) LENGTH ;
 
 boolExpr : intExpr EQ intExpr
     | intExpr GT intExpr
@@ -96,22 +98,26 @@ boolExpr : intExpr EQ intExpr
     | floatExpr GT floatExpr
     | floatExpr LT floatExpr
     | charExpr EQ charExpr
-    | (funcCall | TRUE | FALSE | ID);
+    | funcCall
+    | TRUE | FALSE | ID;
 intExpr :  LRB intExpr RRB
-    | intExpr (MULT | DIV) intExpr
-    | intExpr (PLUS | MINUS) intExpr
-    | funcCall | lengthRead
-    | (INT | ID);
+    | intExpr ((MULT | DIV) intExpr)+
+    | intExpr ((PLUS | MINUS) intExpr)+
+    | funcCall | arrGet | lengthRead
+    | INT_ZERO | '-'?POSITIVE_INT | ID;
 floatExpr :  LRB floatExpr RRB
-    | floatExpr (MULT | DIV) floatExpr
-    | floatExpr (PLUS | MINUS) floatExpr
-    | (funcCall | FLOAT | ID);
-charExpr : funcCall | Q_CHAR | ID ;
+    | floatExpr ((MULT | DIV) floatExpr)+
+    | floatExpr ((PLUS | MINUS) floatExpr)+
+    | funcCall | arrGet
+    | FLOAT_ZERO | '-'?POSITIVE_FLOAT | ID;
+charExpr : funcCall | arrGet | QUOTED_CHAR | ID ;
 strExpr : funcCall | STRING | ID ;
 
+WS : [ \t\r\n]+ -> skip ;
+COMMENT : '#' ~('\r' | '\n')* '\r'?'\n'; // To make ignorable add `-> skip`
+
 NEW : 'new' ;
-LENGTH : 'length' ;
-DOT : '.' ;
+LENGTH : '.length' ;
 COMMA : ',' ;
 ASSIGN : '=' ;
 EQ : '==' ;
@@ -147,13 +153,13 @@ PRINT : 'print' ;
 PRINTLN : 'println' ;
 TRUE : 'true' ;
 FALSE : 'false' ;
-INT : ('-'?('1'..'9')('0'..'9')*) | '0' ;
-FLOAT : ('-'?(('1'..'9')('0'..'9')*|'0')'.'(('0'..'9')*('1'..'9')('0'..'9')*)) | '0''.''0'+ ;
+POSITIVE_FLOAT : ('1'..'9')('0'..'9')*'.'('0'..'9')+ | '0.'('0'..'9')*('1'..'9')('0'..'9')* ;
+FLOAT_ZERO : '0.''0'+ ;
+POSITIVE_INT : ('1'..'9')('0'..'9')*;
+INT_ZERO : '0' ;
 STRING : '"' CHAR+ '"' ;
-Q_CHAR : '\'' CHAR '\'' ; // Quoted char
-CHAR : ('a'..'z'|'A'..'Z'|'!'|'.'|','|' '|'?'|'='|':'|'('|')') ;
+QUOTED_CHAR : '\'' CHAR '\'' ; // Quoted char
 ID : ('a'..'z'|'A'..'Z')+ ;
+CHAR : ('a'..'z'|'A'..'Z'|'!'|'.'|','|' '|'?'|'='|':'|'('|')') ;
 
 SC : ';' ;
-
-WS : ([ \t\r\n]+ | '#'()*'\r'?'\n') -> skip ; // TODO: verify on comments and between
