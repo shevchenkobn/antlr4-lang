@@ -10,17 +10,18 @@ grammar OfpBogdan;
 start : funcDef* mainDef funcDef* ;
 
 mainDef : VOID MAIN LRB RRB block ;
-funcDef : ((VOID | datatype) ID LRB (varDef (COMMA varDef)*)? RRB block) | COMMENT ;
+funcDef : (VOID | datatype) ID LRB (varDef (COMMA varDef)*)? RRB block ;
 
 datatype : DT_INT | DT_FLOAT | DT_CHAR | DT_BOOL | DT_STR | DT_INT_ARR | DT_FLOAT_ARR | DT_CHAR_ARR ;
 varDef : intDef | floatDef | charDef | boolDef | strDef | intArrDef | floatArrDef | charArrDef ;
 
-ifDef : IF LRB boolExpr RRB (stat | block) (ELSE (stat | block))? ;
-whileDef : WHILE LRB boolExpr RRB (stat | block) ; // FIXME: continue? break?
+ifDef : IF LRB boolExpr RRB statOrBlock (ELSE statOrBlock)? ;
+whileDef : WHILE LRB boolExpr RRB statOrBlock ;
 
-block : LCB stat+ RCB ;
+statOrBlock : stat | block ;
+block : LCB stat RCB ;
 
-stat : scStat | ifDef | whileDef | COMMENT ;
+stat : scStat | ifDef | whileDef ;
 
 scStat : (
     | intDecl
@@ -100,21 +101,25 @@ boolExpr : intExpr EQ intExpr
     | charExpr EQ charExpr
     | funcCall
     | TRUE | FALSE | ID;
-intExpr :  LRB intExpr RRB
-    | intExpr ((MULT | DIV) intExpr)+
-    | intExpr ((PLUS | MINUS) intExpr)+
+intExpr : LRB intExpr RRB
+    | intExpr (MULT | DIV) intExpr
+    | intExpr (PLUS | MINUS) intExpr
     | funcCall | arrGet | lengthRead
-    | INT_ZERO | '-'?POSITIVE_INT | ID;
-floatExpr :  LRB floatExpr RRB
-    | floatExpr ((MULT | DIV) floatExpr)+
-    | floatExpr ((PLUS | MINUS) floatExpr)+
+    | int | ID;
+floatExpr : LRB floatExpr RRB
+    | floatExpr (MULT | DIV) floatExpr
+    | floatExpr (PLUS | MINUS) floatExpr
     | funcCall | arrGet
-    | FLOAT_ZERO | '-'?POSITIVE_FLOAT | ID;
+    | float | ID;
 charExpr : funcCall | arrGet | QUOTED_CHAR | ID ;
 strExpr : funcCall | STRING | ID ;
 
+int : INT_ZERO | '-'?POSITIVE_INT ;
+float : FLOAT_ZERO | '-'?POSITIVE_FLOAT ;
+
 WS : [ \t\r\n]+ -> skip ;
-COMMENT : '#' ~('\r' | '\n')* '\r'?'\n'; // To make ignorable add `-> skip`
+// using number because cannot use channel names in files with combined grammar
+COMMENT : '#' ~('\r' | '\n')* '\r'?'\n' -> channel(2);
 
 NEW : 'new' ;
 LENGTH : '.length' ;
@@ -158,7 +163,7 @@ FLOAT_ZERO : '0.''0'+ ;
 POSITIVE_INT : ('1'..'9')('0'..'9')*;
 INT_ZERO : '0' ;
 STRING : '"' CHAR+ '"' ;
-QUOTED_CHAR : '\'' CHAR '\'' ; // Quoted char
+QUOTED_CHAR : '\'' CHAR '\'' ;
 ID : ('a'..'z'|'A'..'Z')+ ;
 CHAR : ('a'..'z'|'A'..'Z'|'!'|'.'|','|' '|'?'|'='|':'|'('|')') ;
 
