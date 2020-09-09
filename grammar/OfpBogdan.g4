@@ -15,7 +15,7 @@ funcDef : (VOID | datatype) ID LRB (varDef (COMMA varDef)*)? RRB block ;
 datatype : DT_INT | DT_FLOAT | DT_CHAR | DT_BOOL | DT_STR | DT_INT_ARR | DT_FLOAT_ARR | DT_CHAR_ARR ;
 varDef : intDef | floatDef | charDef | boolDef | strDef | intArrDef | floatArrDef | charArrDef ;
 
-if : IF LRB boolExpr RRB (stat | block) ;
+if : IF LRB boolExpr RRB (stat | block) (ELSE (stat | block))? ;
 while : WHILE LRB boolExpr RRB (stat | block) ; // FIXME: continue? break?
 
 block : LCB stat+ RCB ;
@@ -38,7 +38,7 @@ scStat : (
     | printExpr
     | printlnExpr) SC ;
 
-assign : ID ASSIGN expr ;
+assign : ID ASSIGN (expr | funcCall) ;
 arrAssign : ID LSB intExpr RSB ASSIGN intExpr
     | floatExpr
     | charExpr;
@@ -56,17 +56,16 @@ expr : boolExpr
 
 printExpr : PRINT LRB printable RRB ;
 printlnExpr : PRINTLN LRB printable RRB ;
-printable : intExpr | floatExpr | boolExpr | charExpr | strExpr ;
+printable : intExpr | floatExpr | boolExpr | charExpr | strExpr | funcCall ;
 
-// TODO: can be unassigned?
-intDecl : intDef ASSIGN intExpr? ;
-floatDecl : floatDef ASSIGN floatExpr? ;
-charDecl : charDef ASSIGN charExpr? ;
-boolDecl : boolDef ASSIGN boolExpr? ;
-strDecl : strDef ASSIGN strExpr? ;
-intArrDecl : intArrDef ASSIGN intArrExpr? ;
-floatArrDecl : floatArrDef ASSIGN floatArrExpr? ;
-charArrDecl : charArrDef ASSIGN charArrExpr? ;
+intDecl : intDef (ASSIGN (intExpr | funcCall))? ;
+floatDecl : floatDef (ASSIGN (floatExpr | funcCall))? ;
+charDecl : charDef (ASSIGN (charExpr | funcCall))? ;
+boolDecl : boolDef (ASSIGN (boolExpr | funcCall))? ;
+strDecl : strDef (ASSIGN (strExpr | funcCall))? ;
+intArrDecl : intArrDef (ASSIGN (intArrExpr | funcCall))? ;
+floatArrDecl : floatArrDef (ASSIGN (floatArrExpr | funcCall))? ;
+charArrDecl : charArrDef (ASSIGN (charArrExpr | funcCall))? ;
 
 intDef : DT_INT ID ;
 floatDef : DT_FLOAT ID ;
@@ -97,18 +96,18 @@ boolExpr : intExpr EQ intExpr
     | floatExpr GT floatExpr
     | floatExpr LT floatExpr
     | charExpr EQ charExpr
-    | (TRUE | FALSE | ID);
+    | (funcCall | TRUE | FALSE | ID);
 intExpr :  LRB intExpr RRB
     | intExpr (MULT | DIV) intExpr
     | intExpr (PLUS | MINUS) intExpr
-    | lengthRead
+    | funcCall | lengthRead
     | (INT | ID);
 floatExpr :  LRB floatExpr RRB
     | floatExpr (MULT | DIV) floatExpr
     | floatExpr (PLUS | MINUS) floatExpr
-    | (FLOAT | ID);
-charExpr : Q_CHAR | ID ;
-strExpr : STRING | ID ;
+    | (funcCall | FLOAT | ID);
+charExpr : funcCall | Q_CHAR | ID ;
+strExpr : funcCall | STRING | ID ;
 
 NEW : 'new' ;
 LENGTH : 'length' ;
@@ -140,6 +139,7 @@ DT_CHAR : 'char' ;
 
 RETURN : 'return' ;
 IF : 'if' ;
+ELSE : 'else' ;
 WHILE : 'while' ;
 VOID : 'void' ;
 MAIN : 'main' ;
@@ -156,4 +156,4 @@ ID : ('a'..'z'|'A'..'Z')+ ;
 
 SC : ';' ;
 
-WS : [ \t\r\n]+ -> skip ; // TODO: verify on comments and between
+WS : ([ \t\r\n]+ | '#'()*'\r'?'\n') -> skip ; // TODO: verify on comments and between
