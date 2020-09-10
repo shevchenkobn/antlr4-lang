@@ -19,7 +19,7 @@ ifDef : IF LRB boolExpr RRB statOrBlock (ELSE statOrBlock)? ;
 whileDef : WHILE LRB boolExpr RRB statOrBlock ;
 
 statOrBlock : stat | block ;
-block : LCB stat RCB ;
+block : LCB stat+ RCB ;
 
 stat : scStat | ifDef | whileDef ;
 
@@ -39,12 +39,15 @@ scStat : (
     | printExpr
     | printlnExpr) SC ;
 
-assign : ID ASSIGN (expr | funcCall) ;
+assign : ID ASSIGN expr ;
 arrSet : arrGet ASSIGN
     floatExpr
     | intExpr
-    | charExpr;
-arrGet : ID LSB intExpr RSB ;
+    | charExpr
+    | complexExpr;
+complexExpr : arrGet
+    | funcCall;
+arrGet : ID LSB (intExpr | complexExpr) RSB ;
 funcCall : ID LRB (expr (COMMA expr)*)? RRB ;
 returnExpr : RETURN expr ;
 
@@ -55,20 +58,20 @@ expr : boolExpr
     | strExpr
     | intArrExpr
     | floatArrExpr
-    | charArrExpr ;
+    | charArrExpr;
 
 printExpr : PRINT LRB printable RRB ;
 printlnExpr : PRINTLN LRB printable RRB ;
-printable : funcCall | arrGet | intExpr | floatExpr | boolExpr | charExpr | strExpr ;
+printable : intExpr | floatExpr | boolExpr | charExpr | strExpr | complexExpr ;
 
-intDecl : intDef (ASSIGN (intExpr | funcCall))? ;
-floatDecl : floatDef (ASSIGN (floatExpr | funcCall))? ;
-charDecl : charDef (ASSIGN (charExpr | funcCall))? ;
-boolDecl : boolDef (ASSIGN (boolExpr | funcCall))? ;
-strDecl : strDef (ASSIGN (strExpr | funcCall))? ;
-intArrDecl : intArrDef (ASSIGN (intArrExpr | funcCall))? ;
-floatArrDecl : floatArrDef (ASSIGN (floatArrExpr | funcCall))? ;
-charArrDecl : charArrDef (ASSIGN (charArrExpr | funcCall))? ;
+intDecl : intDef (ASSIGN intExpr)? ;
+floatDecl : floatDef (ASSIGN floatExpr)? ;
+charDecl : charDef (ASSIGN charExpr)? ;
+boolDecl : boolDef (ASSIGN boolExpr)? ;
+strDecl : strDef (ASSIGN strExpr)? ;
+intArrDecl : intArrDef (ASSIGN intArrExpr)? ;
+floatArrDecl : floatArrDef (ASSIGN floatArrExpr)? ;
+charArrDecl : charArrDef (ASSIGN charArrExpr)? ;
 
 intDef : DT_INT ID ;
 floatDef : DT_FLOAT ID ;
@@ -79,9 +82,9 @@ intArrDef : DT_INT_ARR ID ;
 floatArrDef : DT_FLOAT_ARR ID ;
 charArrDef : DT_CHAR_ARR ID ;
 
-intArrExpr : intArr | newIntArr | ID ;
-floatArrExpr : floatArr | newFloatArr | ID ;
-charArrExpr : charArr | newCharArr | ID ;
+intArrExpr : intArr | newIntArr | funcCall | ID ;
+floatArrExpr : floatArr | newFloatArr | funcCall | ID ;
+charArrExpr : charArr | newCharArr | funcCall | ID ;
 
 intArr : LCB intExpr (COMMA intExpr)* RCB ;
 floatArr : LCB floatExpr (COMMA floatExpr)* RCB ;
@@ -90,7 +93,7 @@ charArr : LCB charExpr (COMMA charExpr)* RCB ;
 newIntArr : NEW DT_INT LSB intExpr RSB ;
 newFloatArr : NEW DT_FLOAT LSB intExpr RSB ;
 newCharArr : NEW DT_CHAR LSB intExpr RSB ;
-lengthRead : (intArr | floatArr | charArr | STRING | ID) LENGTH ;
+lengthRead : (intArr | floatArr | charArr | funcCall | STRING | ID) LENGTH ;
 
 boolExpr : intExpr EQ intExpr
     | intExpr GT intExpr
@@ -104,14 +107,14 @@ boolExpr : intExpr EQ intExpr
 intExpr : LRB intExpr RRB
     | intExpr (MULT | DIV) intExpr
     | intExpr (PLUS | MINUS) intExpr
-    | funcCall | arrGet | lengthRead
+    | complexExpr | lengthRead
     | int | ID;
 floatExpr : LRB floatExpr RRB
     | floatExpr (MULT | DIV) floatExpr
     | floatExpr (PLUS | MINUS) floatExpr
-    | funcCall | arrGet
+    | complexExpr
     | float | ID;
-charExpr : funcCall | arrGet | QUOTED_CHAR | ID ;
+charExpr : complexExpr | QUOTED_CHAR | ID ;
 strExpr : funcCall | STRING | ID ;
 
 int : INT_ZERO | '-'?POSITIVE_INT ;
