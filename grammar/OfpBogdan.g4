@@ -10,7 +10,9 @@ grammar OfpBogdan;
 start : funcDef* mainDef funcDef* ;
 
 mainDef : VOID MAIN LRB RRB block ;
-funcDef : (VOID | datatype) ID LRB (varDef (COMMA varDef)*)? RRB block ;
+funcDef : (VOID ID funcArgs LCB RCB) // special case for noop function
+    | ((VOID | datatype) ID funcArgs block) ;
+funcArgs : LRB (varDef (COMMA varDef)*)? RRB ;
 
 datatype : DT_INT | DT_FLOAT | DT_CHAR | DT_BOOL | DT_STR | DT_INT_ARR | DT_FLOAT_ARR | DT_CHAR_ARR ;
 varDef : intDef | floatDef | charDef | boolDef | strDef | intArrDef | floatArrDef | charArrDef ;
@@ -23,8 +25,8 @@ block : LCB stat+ RCB ;
 
 stat : scStat | ifDef | whileDef ;
 
-scStat : (
-    | intDecl
+// statement with semicolon
+scStat : (intDecl
     | floatDecl
     | charDecl
     | boolDecl
@@ -37,32 +39,33 @@ scStat : (
     | funcCall
     | returnExpr
     | printExpr
-    | printlnExpr) SC ;
+    | printlnExpr
+    |) SC ; // intentionally allow unlimited amount of semicolons for code similar to python `pass`
 
 assign : ID ASSIGN expr ;
 arrSet : arrGet ASSIGN
-    floatExpr
+    (complexExpr
     | intExpr
-    | charExpr
-    | complexExpr;
-complexExpr : arrGet
-    | funcCall;
+    | floatExpr
+    | charExpr);
+complexExpr : funcCall | arrGet ;
 arrGet : ID LSB (intExpr | complexExpr) RSB ;
 funcCall : ID LRB (expr (COMMA expr)*)? RRB ;
 returnExpr : RETURN expr ;
 
-expr : boolExpr
+expr : complexExpr
     | intExpr
-    | floatExpr
     | charExpr
+    | floatExpr
+    | boolExpr
     | strExpr
-    | intArrExpr
+    | intArrExpr // treat {} in non-typed contexts as int[]
     | floatArrExpr
     | charArrExpr;
 
 printExpr : PRINT LRB printable RRB ;
 printlnExpr : PRINTLN LRB printable RRB ;
-printable : intExpr | floatExpr | boolExpr | charExpr | strExpr | complexExpr ;
+printable : complexExpr | intExpr | floatExpr | boolExpr | charExpr | strExpr ;
 
 intDecl : intDef (ASSIGN intExpr)? ;
 floatDecl : floatDef (ASSIGN floatExpr)? ;
@@ -82,26 +85,26 @@ intArrDef : DT_INT_ARR ID ;
 floatArrDef : DT_FLOAT_ARR ID ;
 charArrDef : DT_CHAR_ARR ID ;
 
-intArrExpr : intArr | newIntArr | funcCall | ID ;
-floatArrExpr : floatArr | newFloatArr | funcCall | ID ;
-charArrExpr : charArr | newCharArr | funcCall | ID ;
+intArrExpr : intArr | newArr | funcCall | ID ;
+floatArrExpr : floatArr | newArr | funcCall | ID ;
+charArrExpr : charArr | newArr | funcCall | ID ;
 
-intArr : LCB intExpr (COMMA intExpr)* RCB ;
-floatArr : LCB floatExpr (COMMA floatExpr)* RCB ;
-charArr : LCB charExpr (COMMA charExpr)* RCB ;
+intArr : LCB (intExpr (COMMA intExpr)*)? RCB ;
+floatArr : LCB (floatExpr (COMMA floatExpr)*)? RCB ;
+charArr : LCB (charExpr (COMMA charExpr)*)? RCB ;
 
-newIntArr : NEW DT_INT LSB intExpr RSB ;
-newFloatArr : NEW DT_FLOAT LSB intExpr RSB ;
-newCharArr : NEW DT_CHAR LSB intExpr RSB ;
+newArr : NEW (DT_INT | DT_FLOAT | DT_CHAR) LSB intExpr RSB ;
 lengthRead : (intArr | floatArr | charArr | funcCall | STRING | ID) LENGTH ;
 
-boolExpr : intExpr EQ intExpr
+boolExpr : LRB boolExpr RRB
+    | intExpr EQ intExpr
     | intExpr GT intExpr
     | intExpr LT intExpr
     | floatExpr EQ floatExpr
     | floatExpr GT floatExpr
     | floatExpr LT floatExpr
     | charExpr EQ charExpr
+    | boolExpr EQ boolExpr
     | funcCall
     | TRUE | FALSE | ID;
 intExpr : LRB intExpr RRB
@@ -121,7 +124,8 @@ int : INT_ZERO | '-'?POSITIVE_INT ;
 float : FLOAT_ZERO | '-'?POSITIVE_FLOAT ;
 
 WS : [ \t\r\n]+ -> skip ;
-// using number because cannot use channel names in files with combined grammar
+// using number for channel because cannot use channel names in files with combined grammar
+// channel 2 is used for comments only
 COMMENT : '#' ~('\r' | '\n')* '\r'?'\n' -> channel(2);
 
 NEW : 'new' ;
