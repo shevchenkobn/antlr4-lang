@@ -1,0 +1,20 @@
+void main() {
+    int number = 14;
+    int i = -1249741043930;
+
+    float pi = 3.14;
+    float negativeFloat = -0.1234;
+    float zeroFloat = 0.000000;
+
+    bool firstBool = true;
+    bool secondBool = false;
+
+    char letter = 'p';
+    char dot = '.';
+
+    string str = "Hello World!";
+
+    int[] intArr = {1,2,3,4,5,6,7};
+    float[] floatArr = {1.2, 2.4, 3.6, 4.8, 6.0};
+    char[] charArray = {'a', 'b', 'c', 'd'};
+}

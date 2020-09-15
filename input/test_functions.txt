@@ -1,0 +1,16 @@
+int sum(int a, int b) {
+    return a + b;
+}
+
+void main() {
+    int number = 2;
+    print(number);
+    println(number + 12 * (-28273/3 + -2));
+
+    print(sum(number, 3));
+    println(multiply(12.1, 232.11123));
+}
+
+float multiply(float a, float b){
+    return a * b;
+}
