@@ -4,26 +4,35 @@ grammar OfpBogdan;
     package ua.nure.lnu2020.ofp_4dv507.bogdan;
 }
 
-start : funcDef* mainDef funcDef* ;
+start : anyFuncDef* mainDef anyFuncDef* ;
 
 mainDef : VOID MAIN LRB RRB block ;
-funcDef : (VOID ID funcArgs LCB RCB) // special case for noop function
-    | ((VOID | datatype) ID funcArgs block) ;
+anyFuncDef : voidFuncDef | funcDef ;
+funcDef : datatype ID funcArgs LCB stat+ RCB ;
+voidFuncDef : VOID ID funcArgs voidBlock ; // void function can have empty body while non-void function must have at least one statement, at least one return
+
 funcArgs : LRB (varDef (COMMA varDef)*)? RRB ;
 
 datatype : DT_INT | DT_FLOAT | DT_CHAR | DT_BOOL | DT_STR | DT_INT_ARR | DT_FLOAT_ARR | DT_CHAR_ARR ;
 varDef : intDef | floatDef | charDef | boolDef | strDef | intArrDef | floatArrDef | charArrDef ;
 
 ifDef : IF LRB boolExpr RRB statOrBlock (ELSE statOrBlock)? ;
+voidIfDef : IF LRB boolExpr RRB voidStatOrBlock (ELSE voidStatOrBlock)? ;
 whileDef : WHILE LRB boolExpr RRB statOrBlock ;
+voidWhileDef : WHILE LRB boolExpr RRB voidStatOrBlock ;
 
 statOrBlock : stat | block ;
-block : LCB stat+ RCB ;
+voidStatOrBlock : voidStat | voidBlock ;
+block : LCB stat* RCB ;
+voidBlock : LCB voidStat* RCB ;
 
 stat : scStat | ifDef | whileDef ;
+voidStat : voidScStat | voidIfDef | voidWhileDef ;
 
 // statement with semicolon
-scStat : (intDecl
+scStat : (voidScStatValue | returnExpr) SC ;
+voidScStat : voidScStatValue SC ;
+voidScStatValue : (intDecl
     | floatDecl
     | charDecl
     | boolDecl
@@ -34,10 +43,9 @@ scStat : (intDecl
     | assign
     | arrSet
     | funcCall
-    | returnExpr
     | printExpr
     | printlnExpr
-    |) SC ; // intentionally allow unlimited amount of semicolons for code similar to python `pass`
+    |) ; // intentionally allow unlimited amount of semicolons for code similar to python `pass`
 
 assign : ID ASSIGN expr ;
 arrSet : arrGet ASSIGN
