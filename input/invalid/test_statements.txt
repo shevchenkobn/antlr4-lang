@@ -1,0 +1,28 @@
+void main() {
+    int[] item = arr[1];
+    float i = 121 / 11;
+    float j = 43.2 - 125;
+
+    int a = (1+2).length;
+    int b = 32 * (133 - 43;
+    print({1,2,3});
+
+    if ("Hello" == "Hello") {
+        print("wrong");
+    }
+
+    if (a < b <= c)
+        print(c);
+
+    if (floatA != 1.2)
+        print(true);
+
+    if (i == 0)
+        print(0);
+    else
+        print(2);
+    else if(i == 1)
+        print(1);
+
+    println('A')
+}

@@ -1,0 +1,13 @@
+void main() {
+    void nestedFunc() { }
+
+    return;
+}
+
+void voidFunc(int[] arr){
+    return arr;
+}
+
+int intFunc(string str) {
+   int a = parse(str);
+}

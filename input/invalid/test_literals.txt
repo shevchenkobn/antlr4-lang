@@ -1,0 +1,27 @@
+void main() {
+    int intA = 012;
+    int intB = +943;
+    int intC = -0;
+    int intD = 403.22;
+
+    float floatA = 14;
+    float floatB = .1234;
+    float floatC = +2.01;
+    float floatD = 54.;
+    float floatE = -0.00;
+    float floatF = 05.321;
+
+    char charA = "a";
+    char charB = 'bc';
+    char charC = '>';
+    char charD = 'П';
+
+    bool b1 = true;
+
+    string strA = 'Hello';
+    string strB = "";
+    string strC = "i >= 0";
+
+    int[] intArr = new int[] {1,2,3};
+    bool[] boolArr = { true, false };
+}
