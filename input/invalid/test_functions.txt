@@ -8,10 +8,10 @@ int intFunc(string str) {
 
 int fval() {}
 void main() {
-     void nestedFunc() { }
+
+     return 22;
 
      print({3, 3, 5});
      println(new float[4]);
-
-     return;
+     void nestedFunc() { }
  }

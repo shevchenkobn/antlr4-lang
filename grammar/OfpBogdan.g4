@@ -6,7 +6,7 @@ grammar OfpBogdan;
 
 start : anyFuncDef* mainDef anyFuncDef* EOF;
 
-mainDef : VOID MAIN LRB RRB block ;
+mainDef : VOID MAIN LRB RRB voidBlock ;
 anyFuncDef : voidFuncDef | funcDef ;
 funcDef : datatype ID funcArgs LCB stat+ RCB ;
 voidFuncDef : VOID ID funcArgs voidBlock ; // void function can have empty body while non-void function must have at least one statement, at least one return
