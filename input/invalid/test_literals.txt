@@ -24,4 +24,6 @@ void main() {
 
     int[] intArr = new int[] {1,2,3};
     bool[] boolArr = { true, false };
+
+    bool val = "asfd" == "fdas";
 }

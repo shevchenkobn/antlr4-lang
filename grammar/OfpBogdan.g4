@@ -4,7 +4,7 @@ grammar OfpBogdan;
     package ua.nure.lnu2020.ofp_4dv507.bogdan;
 }
 
-start : anyFuncDef* mainDef anyFuncDef* ;
+start : anyFuncDef* mainDef anyFuncDef* EOF;
 
 mainDef : VOID MAIN LRB RRB block ;
 anyFuncDef : voidFuncDef | funcDef ;

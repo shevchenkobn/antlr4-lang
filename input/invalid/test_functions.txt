@@ -1,9 +1,3 @@
-void main() {
-    void nestedFunc() { }
-
-    return;
-}
-
 void voidFunc(int[] arr){
     return arr;
 }
@@ -11,3 +5,13 @@ void voidFunc(int[] arr){
 int intFunc(string str) {
    int a = parse(str);
 }
+
+int fval() {}
+void main() {
+     void nestedFunc() { }
+
+     print({3, 3, 5});
+     println(new float[4]);
+
+     return;
+ }

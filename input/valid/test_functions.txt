@@ -5,12 +5,53 @@ int sum(int a, int b) {
 void main() {
     int number = 2;
     print(number);
+    println(number);
+
+    print(number * -(-(-2)));
     println(number + 12 * (-28273/3 + -2));
 
     print(sum(number, 3));
     println(multiply(12.1, 232.11123));
-}
 
-float multiply(float a, float b){
+    print('a');
+    println('b');
+
+    print("Hello, ");
+    println("World!");
+
+    print(1.4 + 3.0);
+    println(-2.6 * 3.2);
+
+    print(true);
+    println(24 == 3);
+
+    print(arr[3]);
+    println(arr[2]);
+
+
+    multiply(number);
+    multiply(number);
+
+    multiply(number * -(-(-2)));
+    multiply(number + 12 * (-28273/3 + -2));
+
+    multiply(sum(number, 3));
+    multiply(multiply(12.1, 232.11123));
+
+    multiply('a');
+    multiply('b');
+
+    multiply("Hello, ");
+    multiply("World!");
+
+    multiply(1.4 + 3.0);
+    multiply(-2.6 * 3.2);
+
+    multiply(true);
+    multiply(24 == 3);
+
+    multiply(arr[3]);
+    multiply(arr[2]);
+}float multiply(float a, float b){
     return a * b;
 }

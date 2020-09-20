@@ -21,4 +21,10 @@ void main() {
 
         i = i + 1;
     }
+
+    bool isGood = false == (arr.length == 6);
+    isGood = (ab > cd == 3.5 < 4.3) == true == (3 > 0);
+    ;;;
+
+    if (true) {}
 }

@@ -1,0 +1,9 @@
+void main() {
+    print("Hello, World!");
+}
+
+int anotherFunc() {
+    return 42;
+}
+
+randomText()laskjdfla;sdfjkal;sdfjla;sdfjla;sdkfjasldkfjl;
