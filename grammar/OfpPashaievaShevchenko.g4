@@ -1,7 +1,7 @@
-grammar OfpBogdan;
+grammar OfpPashaievaShevchenko;
 
 @header {
-    package ua.nure.lnu2020.ofp_4dv507.bogdan;
+    package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko;
 }
 
 start : anyFuncDef* mainDef anyFuncDef* EOF;

@@ -1,4 +1,4 @@
-// Generated from ./OfpBogdan.g4 by ANTLR 4.8
+// Generated from ./OfpPashaievaShevchenko.g4 by ANTLR 4.8
 
 package ua.nure.lnu2020.ofp_4dv507.bogdan;
 
@@ -112,7 +112,7 @@ public class OfpBogdanParser extends Parser {
 	}
 
 	@Override
-	public String getGrammarFileName() { return "OfpBogdan.g4"; }
+	public String getGrammarFileName() { return "OfpPashaievaShevchenko.g4"; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }
