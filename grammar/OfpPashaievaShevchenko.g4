@@ -1,14 +1,14 @@
 grammar OfpPashaievaShevchenko;
 
 @header {
-    package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko;
+package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.parsing;
 }
 
-start : anyFuncDef* mainDef anyFuncDef* EOF;
+programDef : anyFuncDef* mainDef anyFuncDef* EOF;
 
 mainDef : VOID MAIN LRB RRB voidBlock ;
 anyFuncDef : voidFuncDef | funcDef ;
-funcDef : datatype ID funcArgs LCB stat+ RCB ;
+funcDef : datatype ID funcArgs funcBlock ;
 voidFuncDef : VOID ID funcArgs voidBlock ; // void function can have empty body while non-void function must have at least one statement, at least one return
 
 funcArgs : LRB (varDef (COMMA varDef)*)? RRB ;
@@ -24,6 +24,7 @@ voidWhileDef : WHILE LRB boolExpr RRB voidStatOrBlock ;
 statOrBlock : stat | block ;
 voidStatOrBlock : voidStat | voidBlock ;
 block : LCB stat* RCB ;
+funcBlock : LCB stat+ RCB ;
 voidBlock : LCB voidStat* RCB ;
 
 stat : scStat | ifDef | whileDef ;
@@ -117,22 +118,22 @@ intExpr : MINUS? LRB intExpr RRB
     | intExpr (MULT | DIV) intExpr
     | intExpr (PLUS | MINUS) intExpr
     | MINUS? (complexExpr | lengthRead)
-    | int | MINUS? ID;
+    | intLiteral | MINUS? ID;
 floatExpr : MINUS? LRB floatExpr RRB
     | floatExpr (MULT | DIV) floatExpr
     | floatExpr (PLUS | MINUS) floatExpr
     | MINUS? complexExpr
-    | float | MINUS? ID;
+    | floatLiteral | MINUS? ID;
 charExpr : complexExpr | QUOTED_CHAR | ID ;
 strExpr : funcCall | STRING | ID ;
 
-int : INT_ZERO | MINUS? POSITIVE_INT ;
-float : FLOAT_ZERO | MINUS? POSITIVE_FLOAT ;
+intLiteral : INT_ZERO | MINUS? POSITIVE_INT ;
+floatLiteral : FLOAT_ZERO | MINUS? POSITIVE_FLOAT ;
 
 WS : [ \t\r\n]+ -> skip ;
 // using number for channel because cannot use channel names in files with combined grammar
 // channel 2 is used for comments only
-COMMENT : '#' ~('\n')* '\r'?'\n' -> channel(2);
+COMMENT : '#' ~('\n')* '\r'?'\n' -> skip ;//channel(2) ; // FIXME: for some reason it doesn't work
 
 NEW : 'new' ;
 LENGTH : '.length' ;
