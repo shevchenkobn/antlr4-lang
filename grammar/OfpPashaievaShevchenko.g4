@@ -62,8 +62,8 @@ returnExpr : RETURN expr ;
 expr : complexExpr
     | ID
     | intExpr
-    | charExpr
     | floatExpr
+    | charExpr
     | boolExpr
     | strExpr
     | intArrExpr // treat {} in non-typed contexts as int[]
@@ -92,15 +92,17 @@ intArrDef : DT_INT_ARR ID ;
 floatArrDef : DT_FLOAT_ARR ID ;
 charArrDef : DT_CHAR_ARR ID ;
 
-intArrExpr : intArr | newArr | funcCall | ID ;
-floatArrExpr : floatArr | newArr | funcCall | ID ;
-charArrExpr : charArr | newArr | funcCall | ID ;
+intArrExpr : intArr | newIntArr | funcCall | ID ;
+floatArrExpr : floatArr | newFloatArr | funcCall | ID ;
+charArrExpr : charArr | newCharArr | funcCall | ID ;
 
 intArr : LCB (intExpr (COMMA intExpr)*)? RCB ;
 floatArr : LCB (floatExpr (COMMA floatExpr)*)? RCB ;
 charArr : LCB (charExpr (COMMA charExpr)*)? RCB ;
 
-newArr : NEW (DT_INT | DT_FLOAT | DT_CHAR) LSB intExpr RSB ;
+newIntArr : NEW DT_INT LSB intExpr RSB ;
+newFloatArr : NEW DT_FLOAT LSB intExpr RSB ;
+newCharArr : NEW DT_CHAR LSB intExpr RSB ;
 lengthRead : (intArr | floatArr | charArr | funcCall | STRING | ID) LENGTH ;
 
 boolExpr : LRB boolExpr RRB

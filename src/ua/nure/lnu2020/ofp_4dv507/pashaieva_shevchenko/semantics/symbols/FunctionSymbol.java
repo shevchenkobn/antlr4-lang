@@ -1,4 +1,8 @@
-package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics;
+package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols;
+
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.OfpType;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.Scope;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.SymbolException;
 
 import java.util.Arrays;
 
@@ -54,7 +58,7 @@ public class FunctionSymbol extends Symbol {
 
         private void setFunction(FunctionSymbol value) {
             if (function != null) {
-                throw new IllegalStateException(ParameterSymbol.class.getName() + " already belongs to function!");
+                throw new SymbolException(name, "parameter already belongs to function.");
             }
         }
 

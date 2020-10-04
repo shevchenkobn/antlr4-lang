@@ -1,4 +1,7 @@
-package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics;
+package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols;
+
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.OfpType;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.SymbolException;
 
 public abstract class Symbol {
     protected final OfpType type;
@@ -14,7 +17,7 @@ public abstract class Symbol {
 
     public Symbol(OfpType type, String name) {
         if (name == null) {
-            throw new NullPointerException("name cannot be null");
+            throw new SymbolException(null, "name cannot be empty");
         }
         this.type = type;
         this.name = name;
