@@ -132,6 +132,11 @@ public class CheckRefListener extends BaseOfpListener {
     }
 
     @Override
+    public void enterVarDef(OfpPashaievaShevchenkoParser.VarDefContext ctx) {
+        addVariableInit(ctx.getChild(0).getChild(1).getText());
+    }
+
+    @Override
     public void enterAssign(OfpPashaievaShevchenkoParser.AssignContext ctx) {
         addVariableInit(ctx);
     }
@@ -234,6 +239,10 @@ public class CheckRefListener extends BaseOfpListener {
         else
             variableName = leftExpression.getChild(1).getText();
 
+        addVariableInit(variableName);
+    }
+
+    private void addVariableInit(String variableName){
         if (!scopeVarInits.containsKey(currentScope)) {
             scopeVarInits.put(currentScope, new LinkedHashSet<>());
         }
