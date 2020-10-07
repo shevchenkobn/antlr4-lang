@@ -3,11 +3,11 @@ package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.listeners.BaseOfpListener;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.listeners.BaseOfpListener;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.parsing.*;
-import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.listeners.CheckRefListener;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.listeners.CheckRefListener;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.Scope;
-import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.listeners.SymbolTableConstructionListener;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.listeners.SymbolTableConstructionListener;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.FunctionSymbol;
 
 import java.io.IOException;

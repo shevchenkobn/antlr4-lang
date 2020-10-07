@@ -1,4 +1,4 @@
-package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.listeners;
+package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.listeners;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;

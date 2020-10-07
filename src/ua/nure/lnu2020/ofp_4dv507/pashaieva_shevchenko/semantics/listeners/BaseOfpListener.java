@@ -1,4 +1,4 @@
-package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.listeners;
+package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.listeners;
 
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.parsing.OfpPashaievaShevchenkoBaseListener;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.Scope;
