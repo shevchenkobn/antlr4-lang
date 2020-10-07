@@ -45,8 +45,7 @@ voidScStatValue : (intDecl
     | arrSet
     | funcCall
     | printExpr
-    | printlnExpr
-    |) ; // intentionally allow unlimited amount of semicolons for code similar to python `pass`
+    | printlnExpr ) ;
 
 assign : ID ASSIGN expr ;
 arrSet : arrGet ASSIGN

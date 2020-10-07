@@ -8,7 +8,7 @@ import java.util.IdentityHashMap;
 
 public class FunctionMap extends IdentityHashMap<ParseTree, FunctionSymbol> {
     public void toAppendable(Appendable appendable, boolean pretty) throws IOException {
-        appendable.append("FunctionMap{");
+        appendable.append(getClass().getSimpleName()).append('{');
         var first = true;
         for (var entry : entrySet()) {
             if (!first) {
@@ -25,8 +25,5 @@ public class FunctionMap extends IdentityHashMap<ParseTree, FunctionSymbol> {
             appendable.append('\n');
         }
         appendable.append('}');
-        if (pretty) {
-            appendable.append('\n');
-        }
     }
 }

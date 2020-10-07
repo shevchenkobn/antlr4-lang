@@ -1,21 +1,19 @@
-package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics;
+package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.listeners;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.parsing.OfpPashaievaShevchenkoBaseListener;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.parsing.OfpPashaievaShevchenkoParser;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.FunctionMap;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.OfpType;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.Scope;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.DuplicateSymbolException;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.ReturnNotFoundException;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.FunctionSymbol;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.VariableSymbol;
 
-import java.util.ArrayList;
-
-public class SymbolTableConstructionListener extends OfpPashaievaShevchenkoBaseListener {
+public class SymbolTableConstructionListener extends BaseOfpListener {
     private final FunctionMap functions = new FunctionMap();
-    private final ArrayList<IllegalStateException> errors = new ArrayList<>();
 
-    private Scope<FunctionSymbol> functionScope = new Scope<>(null);
     private FunctionSymbol function;
     private Scope<VariableSymbol> scope;
     private FunctionSymbol.ParameterSymbol[] functionArguments;
@@ -25,12 +23,12 @@ public class SymbolTableConstructionListener extends OfpPashaievaShevchenkoBaseL
     private ParseTree functionNode;
     private boolean hasReturnMet;
 
-    public FunctionMap getFunctions() {
-        return functions;
+    public SymbolTableConstructionListener(Scope<FunctionSymbol> globalScope){
+        super(globalScope);
     }
 
-    public ArrayList<IllegalStateException> getErrors() {
-        return errors;
+    public FunctionMap getFunctions() {
+        return functions;
     }
 
     @Override
@@ -61,7 +59,7 @@ public class SymbolTableConstructionListener extends OfpPashaievaShevchenkoBaseL
 
     @Override
     public void enterBlock(OfpPashaievaShevchenkoParser.BlockContext ctx) {
-        processBlockStart();
+        processBlockStart(ctx);
     }
 
     @Override
@@ -72,7 +70,7 @@ public class SymbolTableConstructionListener extends OfpPashaievaShevchenkoBaseL
 
     @Override
     public void enterVoidBlock(OfpPashaievaShevchenkoParser.VoidBlockContext ctx) {
-        processBlockStart();
+        processBlockStart(ctx);
     }
 
     @Override
@@ -162,16 +160,16 @@ public class SymbolTableConstructionListener extends OfpPashaievaShevchenkoBaseL
         }
     }
 
-    private void processBlockStart() {
+    private void processBlockStart(ParseTree parseTree) {
         if (isInFunctionBody()) {
-            processInnerBlockStart();
+            processInnerBlockStart(parseTree);
         } else {
             finishFunctionDefinition();
         }
     }
 
-    private void processInnerBlockStart() {
-        scope = new Scope<>(scope);
+    private void processInnerBlockStart(ParseTree parseTree) {
+        scope = new Scope<>(scope, parseTree);
     }
 
     private void processBlockFinish() {
@@ -181,7 +179,7 @@ public class SymbolTableConstructionListener extends OfpPashaievaShevchenkoBaseL
     private void finishFunctionDefinition() {
         function = new FunctionSymbol(this.functionType, this.functionName, functionArguments);
         try {
-            functionScope.define(function);
+            globalScope.define(function);
             functions.put(this.functionNode, function);
             scope = function.getVariableScope();
         } catch (DuplicateSymbolException exception) {
