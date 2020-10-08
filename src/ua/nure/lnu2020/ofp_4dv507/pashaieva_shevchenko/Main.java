@@ -47,7 +47,7 @@ public class Main {
             }
 
             var symbolTable = listener.getFunctions();
-            System.out.println("OK");
+            symbolTable.toAppendable(System.out, true);
         } catch (IOException exception) {
             System.err.println("Failed to read input file: " + sourceFileName);
             exception.printStackTrace();
