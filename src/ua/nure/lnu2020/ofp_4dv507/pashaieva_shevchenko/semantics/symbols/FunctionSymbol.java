@@ -32,7 +32,7 @@ public class FunctionSymbol extends Symbol {
 
     public FunctionSymbol(OfpType type, String name, Scope<VariableSymbol> enclosingVariableScope, ParameterSymbol[] arguments) {
         super(type, name);
-        variableScope = new Scope<>(enclosingVariableScope);
+        variableScope = new Scope<>(enclosingVariableScope, null);
         this.arguments = arguments;
         for (var argument : this.arguments) {
             argument.setFunction(this);
