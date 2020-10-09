@@ -2,11 +2,14 @@ package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols;
 
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.OfpType;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.Scope;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.DuplicateSymbolException;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.SymbolException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class FunctionSymbol extends Symbol {
+    public ArrayList<DuplicateSymbolException> parameterExceptions;
     protected final ParameterSymbol[] arguments;
     protected final Scope<VariableSymbol> variableScope;
 
@@ -33,11 +36,20 @@ public class FunctionSymbol extends Symbol {
     public FunctionSymbol(OfpType type, String name, Scope<VariableSymbol> enclosingVariableScope, ParameterSymbol[] arguments) {
         super(type, name);
         variableScope = new Scope<>(enclosingVariableScope, null);
-        this.arguments = arguments;
-        for (var argument : this.arguments) {
-            argument.setFunction(this);
-            variableScope.define(argument);
+        for (var argument : arguments) {
+            try {
+                variableScope.define(argument);
+                argument.setFunction(this);
+            } catch (DuplicateSymbolException exception) {
+                if (parameterExceptions == null) {
+                    parameterExceptions = new ArrayList<>();
+                }
+                parameterExceptions.add(exception);
+            }
         }
+        this.arguments = parameterExceptions == null ? arguments : Arrays.stream(arguments).filter(
+                a -> a == Arrays.stream(arguments).filter(b -> a.getName().equals(b.getName())).findFirst().orElse(null)
+        ).toArray(FunctionSymbol.ParameterSymbol[]::new);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.listeners;
 
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.parsing.OfpPashaievaShevchenkoParser;
@@ -64,7 +65,7 @@ public class SymbolTableConstructionListener extends BaseOfpListener {
 
     @Override
     public void enterFuncBlock(OfpPashaievaShevchenkoParser.FuncBlockContext ctx) {
-        finishFunctionDefinition();
+        processFunctionHeader();
         startTrackingReturn();
     }
 
@@ -80,8 +81,8 @@ public class SymbolTableConstructionListener extends BaseOfpListener {
 
     @Override
     public void exitFuncBlock(OfpPashaievaShevchenkoParser.FuncBlockContext ctx) {
+        finishTrackingReturn(((TerminalNode)ctx.parent.getChild(1)).getSymbol());
         processBlockFinish();
-        finishTrackingReturn();
     }
 
     @Override
@@ -167,7 +168,7 @@ public class SymbolTableConstructionListener extends BaseOfpListener {
         if (isInFunctionBody()) {
             processInnerBlockStart(parseTree);
         } else {
-            finishFunctionDefinition();
+            processFunctionHeader();
         }
     }
 
@@ -179,18 +180,25 @@ public class SymbolTableConstructionListener extends BaseOfpListener {
         scope = scope.getEnclosingScope();
     }
 
-    private void finishFunctionDefinition() {
+    private void processFunctionHeader() {
         function = new FunctionSymbol(this.functionType, this.functionName.getText(), functionArguments);
+        if (function.parameterExceptions != null) {
+            var token = functionName.getSymbol();
+            for (var error : function.parameterExceptions) {
+                error.setSourceCodeLine(token.getLine());
+                errors.add(error);
+            }
+        }
         try {
             globalScope.define(function);
-            functions.put(this.functionNode, function);
-            scope = function.getVariableScope();
         } catch (DuplicateSymbolException exception) {
             var token = functionName.getSymbol();
             exception.setSourceCodeLine(token.getLine());
             exception.setSourceCodeCharacterInLineIndex(token.getCharPositionInLine());
             errors.add(exception);
         }
+        functions.put(this.functionNode, function);
+        scope = function.getVariableScope();
 
         this.functionType = null;
         this.functionName = null;
@@ -207,12 +215,11 @@ public class SymbolTableConstructionListener extends BaseOfpListener {
         hasReturnMet = true;
     }
 
-    private void finishTrackingReturn() {
+    private void finishTrackingReturn(Token functionNameToken) {
         if (!hasReturnMet) {
-            var exception = new ReturnNotFoundException();
-            var token = functionName.getSymbol();
-            exception.setSourceCodeLine(token.getLine());
-            exception.setSourceCodeCharacterInLineIndex(token.getCharPositionInLine());
+            var exception = new ReturnNotFoundException(functionNameToken.getText());
+            exception.setSourceCodeLine(functionNameToken.getLine());
+            exception.setSourceCodeCharacterInLineIndex(functionNameToken.getCharPositionInLine());
             errors.add(exception);
         } else {
             hasReturnMet = false;
