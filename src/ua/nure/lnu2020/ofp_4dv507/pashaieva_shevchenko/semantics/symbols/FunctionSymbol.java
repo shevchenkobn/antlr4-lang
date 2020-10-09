@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class FunctionSymbol extends Symbol {
-    public ArrayList<DuplicateSymbolException> parameterExceptions;
+    private ArrayList<DuplicateSymbolException> parameterExceptions;
     protected final ParameterSymbol[] arguments;
     protected final Scope<VariableSymbol> variableScope;
 
@@ -19,6 +19,14 @@ public class FunctionSymbol extends Symbol {
 
     public Scope<VariableSymbol> getVariableScope() {
         return variableScope;
+    }
+
+    public ArrayList<DuplicateSymbolException> getParameterExceptions() {
+        return parameterExceptions;
+    }
+
+    public void resetParameterExceptions() {
+        this.parameterExceptions = null;
     }
 
     public FunctionSymbol(OfpType type, String name) {

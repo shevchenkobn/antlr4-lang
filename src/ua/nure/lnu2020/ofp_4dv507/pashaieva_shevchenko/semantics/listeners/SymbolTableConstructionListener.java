@@ -182,9 +182,9 @@ public class SymbolTableConstructionListener extends BaseOfpListener {
 
     private void processFunctionHeader() {
         function = new FunctionSymbol(this.functionType, this.functionName.getText(), functionArguments);
-        if (function.parameterExceptions != null) {
+        if (function.getParameterExceptions() != null) {
             var token = functionName.getSymbol();
-            for (var error : function.parameterExceptions) {
+            for (var error : function.getParameterExceptions()) {
                 error.setSourceCodeLine(token.getLine());
                 errors.add(error);
             }
