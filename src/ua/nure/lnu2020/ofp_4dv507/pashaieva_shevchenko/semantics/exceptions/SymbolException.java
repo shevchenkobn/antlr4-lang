@@ -1,6 +1,6 @@
 package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions;
 
-public class SymbolException extends IllegalStateException {
+public class SymbolException extends OfpSourceCodeException {
     protected final String symbolName;
 
     public String getSymbolName() {

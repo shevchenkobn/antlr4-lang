@@ -19,7 +19,7 @@ public class SymbolTableConstructionListener extends BaseOfpListener {
     private FunctionSymbol.ParameterSymbol[] functionArguments;
     private int functionParameterIndex = -1;
     private OfpType functionType;
-    private String functionName;
+    private TerminalNode functionName;
     private ParseTree functionNode;
     private boolean hasReturnMet;
 
@@ -131,7 +131,7 @@ public class SymbolTableConstructionListener extends BaseOfpListener {
 
     private void startFunction(OfpType type, TerminalNode name, ParseTree node) {
         functionType = type;
-        functionName = name.getText();
+        functionName = name;
         functionNode = node;
     }
 
@@ -150,6 +150,9 @@ public class SymbolTableConstructionListener extends BaseOfpListener {
             try {
                 scope.define(variable);
             } catch (DuplicateSymbolException exception) {
+                var token = name.getSymbol();
+                exception.setSourceCodeLine(token.getLine());
+                exception.setSourceCodeCharacterInLineIndex(token.getCharPositionInLine());
                 this.errors.add(exception);
             }
         } else {
@@ -177,12 +180,15 @@ public class SymbolTableConstructionListener extends BaseOfpListener {
     }
 
     private void finishFunctionDefinition() {
-        function = new FunctionSymbol(this.functionType, this.functionName, functionArguments);
+        function = new FunctionSymbol(this.functionType, this.functionName.getText(), functionArguments);
         try {
             globalScope.define(function);
             functions.put(this.functionNode, function);
             scope = function.getVariableScope();
         } catch (DuplicateSymbolException exception) {
+            var token = functionName.getSymbol();
+            exception.setSourceCodeLine(token.getLine());
+            exception.setSourceCodeCharacterInLineIndex(token.getCharPositionInLine());
             errors.add(exception);
         }
 
@@ -203,7 +209,11 @@ public class SymbolTableConstructionListener extends BaseOfpListener {
 
     private void finishTrackingReturn() {
         if (!hasReturnMet) {
-            errors.add(new ReturnNotFoundException());
+            var exception = new ReturnNotFoundException();
+            var token = functionName.getSymbol();
+            exception.setSourceCodeLine(token.getLine());
+            exception.setSourceCodeCharacterInLineIndex(token.getCharPositionInLine());
+            errors.add(exception);
         } else {
             hasReturnMet = false;
         }
