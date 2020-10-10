@@ -35,7 +35,7 @@ public class Scope<S extends Symbol> {
         }
     }
 
-    public void define(S sym) {
+    public void define(S sym) throws DuplicateSymbolException {
         if (symbols.containsKey(sym.getName())) {
             throw new DuplicateSymbolException(sym.getName());
         }
@@ -47,7 +47,7 @@ public class Scope<S extends Symbol> {
      * try enclosing/parent scope recursively.
      * If null is returned, name/identifier not found in the symbol table!
      */
-    public S resolve(String name) {
+    public S resolve(String name) throws SymbolNotDeclaredException {
         if (symbols.containsKey(name)) {
             return symbols.get(name);
         }

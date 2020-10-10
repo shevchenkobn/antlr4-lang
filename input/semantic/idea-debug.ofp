@@ -12,7 +12,7 @@ return 3;
 }
 
 void funcR(int[] arr, float d) {
-int var;
+int var = 4 + (4 + (4 + b));
 float asQ;
 if (var < 0) {
 char varR;

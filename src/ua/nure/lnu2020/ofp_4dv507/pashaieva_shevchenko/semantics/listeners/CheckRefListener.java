@@ -127,6 +127,9 @@ public class CheckRefListener extends BaseOfpListener {
         try {
             globalScope.resolve(functionName);
         } catch (SymbolNotDeclaredException exception){
+            var token = ctx.getStart();
+            exception.setSourceCodeLine(token.getLine());
+            exception.setSourceCodeCharacterInLineIndex(token.getCharPositionInLine());
             errors.add(exception);
         }
     }
@@ -210,6 +213,9 @@ public class CheckRefListener extends BaseOfpListener {
             currentScope.resolve(variableName);
             checkVariableInit(variableName, currentScope);
         } catch (SymbolNotDeclaredException | SymbolNotInitializedException exception) {
+            var token = variable.getSymbol();
+            exception.setSourceCodeLine(token.getLine());
+            exception.setSourceCodeCharacterInLineIndex(token.getCharPositionInLine());
             errors.add(exception);
         }
     }
