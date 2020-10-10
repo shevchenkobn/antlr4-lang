@@ -3,6 +3,7 @@ package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.OfpSourceCodeException;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.listeners.BaseOfpListener;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.parsing.*;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.listeners.CheckRefListener;
@@ -56,15 +57,20 @@ public class Main {
                 foundErrors = foundErrors | processErrors(listener.getErrors());
             }
 
-            //Check types
-            var visitor = new TypeCheckingVisitor(globalScope);
-            visitor.visit(programTree);
-            foundErrors = foundErrors | processErrors(visitor.getErrors());
-
-            if (foundErrors) {
+            if (foundErrors){
                 System.err.printf("Semantic errors in file '%s'. See the errors above.\n", sourceFileName);
                 System.exit(1);
             }
+
+            //Check types
+            var visitor = new TypeCheckingVisitor(globalScope);
+            visitor.visit(programTree);
+
+            if (processErrors(visitor.getErrors())) {
+                System.err.printf("Type inconsistency errors in file '%s'. See the errors above.\n", sourceFileName);
+                System.exit(1);
+            }
+
             System.out.println("\nOK");
         } catch (IOException exception) {
             System.err.println("Failed to read input file: " + sourceFileName);
@@ -80,7 +86,7 @@ public class Main {
         };
     }
 
-    private static boolean processErrors(ArrayList<IllegalStateException> errors){
+    private static boolean processErrors(ArrayList<OfpSourceCodeException> errors){
         if (errors.size() == 0)
             return false;
 
