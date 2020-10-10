@@ -66,57 +66,7 @@ public class CheckRefListener extends BaseOfpListener {
     }
 
     @Override
-    public void enterExpr(OfpPashaievaShevchenkoParser.ExprContext ctx) {
-        checkVariableDefinition(ctx.ID());
-    }
-
-    @Override
-    public void enterIntExpr(OfpPashaievaShevchenkoParser.IntExprContext ctx) {
-        checkVariableDefinition(ctx.ID());
-    }
-
-    @Override
-    public void enterFloatExpr(OfpPashaievaShevchenkoParser.FloatExprContext ctx) {
-        checkVariableDefinition(ctx.ID());
-    }
-
-    @Override
-    public void enterCharExpr(OfpPashaievaShevchenkoParser.CharExprContext ctx) {
-        checkVariableDefinition(ctx.ID());
-    }
-
-    @Override
-    public void enterBoolExpr(OfpPashaievaShevchenkoParser.BoolExprContext ctx) {
-        checkVariableDefinition(ctx.ID());
-    }
-
-    @Override
-    public void enterStrExpr(OfpPashaievaShevchenkoParser.StrExprContext ctx) {
-        checkVariableDefinition(ctx.ID());
-    }
-
-    @Override
-    public void enterIntArrExpr(OfpPashaievaShevchenkoParser.IntArrExprContext ctx) {
-        checkVariableDefinition(ctx.ID());
-    }
-
-    @Override
-    public void enterFloatArrExpr(OfpPashaievaShevchenkoParser.FloatArrExprContext ctx) {
-        checkVariableDefinition(ctx.ID());
-    }
-
-    @Override
-    public void enterCharArrExpr(OfpPashaievaShevchenkoParser.CharArrExprContext ctx) {
-        checkVariableDefinition(ctx.ID());
-    }
-
-    @Override
-    public void enterLengthRead(OfpPashaievaShevchenkoParser.LengthReadContext ctx) {
-        checkVariableDefinition(ctx.ID());
-    }
-
-    @Override
-    public void enterArrGet(OfpPashaievaShevchenkoParser.ArrGetContext ctx) {
+    public void enterVariable(OfpPashaievaShevchenkoParser.VariableContext ctx) {
         checkVariableDefinition(ctx.ID());
     }
 

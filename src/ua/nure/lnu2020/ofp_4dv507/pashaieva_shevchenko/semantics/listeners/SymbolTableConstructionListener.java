@@ -34,13 +34,13 @@ public class SymbolTableConstructionListener extends BaseOfpListener {
 
     @Override
     public void enterMainDef(OfpPashaievaShevchenkoParser.MainDefContext ctx) {
-        startFunction(null, ctx.MAIN(), ctx);
+        startFunction(OfpType.VOID, ctx.MAIN(), ctx);
         startFunctionArgs(0);
     }
 
     @Override
     public void enterVoidFuncDef(OfpPashaievaShevchenkoParser.VoidFuncDefContext ctx) {
-        startFunction(null, ctx.ID(), ctx);
+        startFunction(OfpType.VOID, ctx.ID(), ctx);
     }
 
     @Override

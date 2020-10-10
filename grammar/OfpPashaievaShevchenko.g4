@@ -49,17 +49,16 @@ voidScStatValue : (intDecl
 
 assign : ID ASSIGN expr ;
 arrSet : arrGet ASSIGN
-    (complexExpr
-    | intExpr
+    (intExpr
     | floatExpr
     | charExpr);
 complexExpr : funcCall | arrGet ;
-arrGet : ID LSB (intExpr | complexExpr) RSB ;
+arrGet : variable LSB intExpr RSB ;
 funcCall : ID LRB (expr (COMMA expr)*)? RRB ;
 returnExpr : RETURN expr ;
 
 expr : complexExpr
-    | ID
+    | variable
     | intExpr
     | floatExpr
     | charExpr
@@ -71,7 +70,7 @@ expr : complexExpr
 
 printExpr : PRINT LRB printable RRB ;
 printlnExpr : PRINTLN LRB printable RRB ;
-printable : complexExpr | intExpr | floatExpr | boolExpr | charExpr | strExpr ;
+printable : intExpr | floatExpr | boolExpr | charExpr | strExpr ;
 
 intDecl : intDef (ASSIGN intExpr)? ;
 floatDecl : floatDef (ASSIGN floatExpr)? ;
@@ -91,9 +90,9 @@ intArrDef : DT_INT_ARR ID ;
 floatArrDef : DT_FLOAT_ARR ID ;
 charArrDef : DT_CHAR_ARR ID ;
 
-intArrExpr : intArr | newIntArr | funcCall | ID ;
-floatArrExpr : floatArr | newFloatArr | funcCall | ID ;
-charArrExpr : charArr | newCharArr | funcCall | ID ;
+intArrExpr : intArr | newIntArr | funcCall | variable ;
+floatArrExpr : floatArr | newFloatArr | funcCall | variable ;
+charArrExpr : charArr | newCharArr | funcCall | variable ;
 
 intArr : LCB (intExpr (COMMA intExpr)*)? RCB ;
 floatArr : LCB (floatExpr (COMMA floatExpr)*)? RCB ;
@@ -102,7 +101,7 @@ charArr : LCB (charExpr (COMMA charExpr)*)? RCB ;
 newIntArr : NEW DT_INT LSB intExpr RSB ;
 newFloatArr : NEW DT_FLOAT LSB intExpr RSB ;
 newCharArr : NEW DT_CHAR LSB intExpr RSB ;
-lengthRead : (intArr | floatArr | charArr | funcCall | STRING | ID) LENGTH ;
+lengthRead : (intArr | floatArr | charArr | funcCall | STRING | variable) LENGTH ;
 
 boolExpr : LRB boolExpr RRB
     | intExpr EQ intExpr
@@ -114,22 +113,23 @@ boolExpr : LRB boolExpr RRB
     | charExpr EQ charExpr
     | boolExpr EQ boolExpr
     | funcCall
-    | TRUE | FALSE | ID;
+    | TRUE | FALSE | variable;
 intExpr : MINUS? LRB intExpr RRB
     | intExpr (MULT | DIV) intExpr
     | intExpr (PLUS | MINUS) intExpr
     | MINUS? (complexExpr | lengthRead)
-    | intLiteral | MINUS? ID;
+    | intLiteral | MINUS? variable;
 floatExpr : MINUS? LRB floatExpr RRB
     | floatExpr (MULT | DIV) floatExpr
     | floatExpr (PLUS | MINUS) floatExpr
     | MINUS? complexExpr
-    | floatLiteral | MINUS? ID;
-charExpr : complexExpr | QUOTED_CHAR | ID ;
-strExpr : funcCall | STRING | ID ;
+    | floatLiteral | MINUS? variable;
+charExpr : complexExpr | QUOTED_CHAR | variable ;
+strExpr : funcCall | STRING | variable ;
 
 intLiteral : INT_ZERO | MINUS? POSITIVE_INT ;
 floatLiteral : FLOAT_ZERO | MINUS? POSITIVE_FLOAT ;
+variable : ID;
 
 WS : [ \t\r\n]+ -> skip ;
 // using number for channel because cannot use channel names in files with combined grammar

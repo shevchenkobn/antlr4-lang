@@ -793,6 +793,18 @@ public class OfpPashaievaShevchenkoBaseListener implements OfpPashaievaShevchenk
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitFloatLiteral(OfpPashaievaShevchenkoParser.FloatLiteralContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterVariable(OfpPashaievaShevchenkoParser.VariableContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitVariable(OfpPashaievaShevchenkoParser.VariableContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
