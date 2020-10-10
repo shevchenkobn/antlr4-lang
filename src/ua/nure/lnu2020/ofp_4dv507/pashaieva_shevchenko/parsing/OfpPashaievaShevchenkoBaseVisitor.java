@@ -468,4 +468,11 @@ public class OfpPashaievaShevchenkoBaseVisitor<T> extends AbstractParseTreeVisit
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitFloatLiteral(OfpPashaievaShevchenkoParser.FloatLiteralContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitVariable(OfpPashaievaShevchenkoParser.VariableContext ctx) { return visitChildren(ctx); }
 }

@@ -3,14 +3,17 @@ package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.OfpSourceCodeException;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.listeners.BaseOfpListener;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.parsing.*;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.listeners.CheckRefListener;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.Scope;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.listeners.SymbolTableConstructionListener;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.FunctionSymbol;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.visitors.TypeCheckingVisitor;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) {
@@ -41,31 +44,55 @@ public class Main {
             // Building Symbol Table
             var walker = new ParseTreeWalker();
             var globalScope = new Scope<FunctionSymbol>(null, null);
-            var listeners = new BaseOfpListener[] {
-                    new SymbolTableConstructionListener(globalScope),
-                    new CheckRefListener(globalScope)
-            };
+            var foundErrors = false;
 
-            for (BaseOfpListener listener : listeners) {
+            for (BaseOfpListener listener : getListeners(globalScope)) {
                 walker.walk(listener, programTree);
                 if (listener instanceof SymbolTableConstructionListener) {
                     ((SymbolTableConstructionListener) listener).getFunctions().toAppendable(System.out, true);
                     System.out.println();
                 }
 
-                if (listener.getErrors().size() > 0) {
-                    for (var exception : listener.getErrors()) {
-                        System.err.println(exception.toString());
-                    }
-                    System.err.printf("Semantic errors in file '%s'. See the errors above.\n", sourceFileName);
-                    System.exit(1);
-                }
+                foundErrors = foundErrors | processErrors(listener.getErrors());
             }
+
+            if (foundErrors){
+                System.err.printf("Semantic errors in file '%s'. See the errors above.\n", sourceFileName);
+                System.exit(1);
+            }
+
+            //Check types
+            var visitor = new TypeCheckingVisitor(globalScope);
+            visitor.visit(programTree);
+
+            if (processErrors(visitor.getErrors())) {
+                System.err.printf("Type inconsistency errors in file '%s'. See the errors above.\n", sourceFileName);
+                System.exit(1);
+            }
+
             System.out.println("\nOK");
         } catch (IOException exception) {
             System.err.println("Failed to read input file: " + sourceFileName);
             exception.printStackTrace();
             System.exit(1);
         }
+    }
+
+    private static BaseOfpListener[] getListeners(Scope<FunctionSymbol> globalScope){
+        return new BaseOfpListener[] {
+                new SymbolTableConstructionListener(globalScope),
+                new CheckRefListener(globalScope)
+        };
+    }
+
+    private static boolean processErrors(ArrayList<OfpSourceCodeException> errors){
+        if (errors.size() == 0)
+            return false;
+
+        for (var exception : errors) {
+            System.err.println(exception.toString());
+        }
+
+        return true;
     }
 }

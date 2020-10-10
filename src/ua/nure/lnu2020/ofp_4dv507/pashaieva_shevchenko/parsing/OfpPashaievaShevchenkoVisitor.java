@@ -402,4 +402,10 @@ public interface OfpPashaievaShevchenkoVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitFloatLiteral(OfpPashaievaShevchenkoParser.FloatLiteralContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link OfpPashaievaShevchenkoParser#variable}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVariable(OfpPashaievaShevchenkoParser.VariableContext ctx);
 }

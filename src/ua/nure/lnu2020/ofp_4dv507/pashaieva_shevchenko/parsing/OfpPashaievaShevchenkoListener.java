@@ -659,4 +659,14 @@ public interface OfpPashaievaShevchenkoListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFloatLiteral(OfpPashaievaShevchenkoParser.FloatLiteralContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link OfpPashaievaShevchenkoParser#variable}.
+	 * @param ctx the parse tree
+	 */
+	void enterVariable(OfpPashaievaShevchenkoParser.VariableContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link OfpPashaievaShevchenkoParser#variable}.
+	 * @param ctx the parse tree
+	 */
+	void exitVariable(OfpPashaievaShevchenkoParser.VariableContext ctx);
 }
