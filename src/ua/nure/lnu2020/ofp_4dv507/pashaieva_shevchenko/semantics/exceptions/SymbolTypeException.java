@@ -30,6 +30,7 @@ public class SymbolTypeException extends SymbolException {
         for (int i = 0; i < expectedTypes.length; i++)
             typeNames[i] = expectedTypes[i].getName();
 
-        return String.format("type '%s' %s '%s'", symbolType.getName(), MESSAGE, String.join(", ",typeNames));
+        String symbolName = symbolType != null ? symbolType.getName() : "VOID";
+        return String.format("type '%s' %s '%s'", symbolName, MESSAGE, String.join(", ",typeNames));
     }
 }

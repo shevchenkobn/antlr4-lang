@@ -6,8 +6,7 @@ import java.util.Map;
 public enum OfpType {
     INT("int"), FLOAT("float"), CHAR("char"), BOOL("bool"),
     STRING("string"),
-    INT_ARR("int[]"), FLOAT_ARR("float[]"), CHAR_ARR("char[]"),
-    VOID("void");
+    INT_ARR("int[]"), FLOAT_ARR("float[]"), CHAR_ARR("char[]");
 
     private static final Map<String, OfpType> typesByName = new HashMap<>();
 
