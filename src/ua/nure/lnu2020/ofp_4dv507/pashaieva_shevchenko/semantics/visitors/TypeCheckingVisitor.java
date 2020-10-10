@@ -2,6 +2,7 @@ package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.visitors;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.parsing.OfpPashaievaShevchenkoParser;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.OfpType;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.Scope;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 
 public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
 
+    private static final ArrayList<OfpType> ComparableTypes = new ArrayList<>();
     private static final ArrayList<OfpType> LengthDefinedTypes = new ArrayList<>();
     private static final ArrayList<OfpType> PrintableTypes = new ArrayList<>();
 
@@ -21,6 +23,11 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
     private Scope<VariableSymbol> currentScope;
 
     static {
+        ComparableTypes.add(OfpType.INT);
+        ComparableTypes.add(OfpType.FLOAT);
+        ComparableTypes.add(OfpType.CHAR);
+        ComparableTypes.add(OfpType.BOOL);
+
         LengthDefinedTypes.add(OfpType.INT_ARR);
         LengthDefinedTypes.add(OfpType.FLOAT_ARR);
         LengthDefinedTypes.add(OfpType.CHAR_ARR);
@@ -79,11 +86,33 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
         if (ctx.TRUE() != null || ctx.FALSE() != null)
             return OfpType.BOOL;
 
-        OfpType result = super.visitBoolExpr(ctx);
-        if (ctx.children.size() > 1)
-            return OfpType.BOOL;
+        if (ctx.children.size() > 2 && ctx.getChild(1) instanceof TerminalNode){
+            ParseTree leftExpression = ctx.getChild(0);
+            ParseTree rightExpression = ctx.getChild(2);
 
-        return checkExpression(result, OfpType.BOOL, ctx);
+            OfpType leftExpressionType = visit(leftExpression);
+            OfpType rightExpressionType = visit(rightExpression);
+
+            if (!ComparableTypes.contains(leftExpressionType))
+                errors.add(new SymbolTypeException(leftExpressionType,
+                        ComparableTypes.toArray(OfpType[]::new),
+                        leftExpression.getText()));
+
+            if ((ctx.GT() != null || ctx.LT() != null)
+                    && (leftExpressionType != OfpType.INT && leftExpressionType != OfpType.FLOAT))
+                errors.add(new SymbolTypeException(leftExpressionType,
+                        new OfpType[] {OfpType.INT, OfpType.FLOAT},
+                        leftExpression.getText()));
+
+            if (leftExpressionType != rightExpressionType)
+                errors.add(new SymbolTypeException(rightExpressionType,
+                        leftExpressionType,
+                        rightExpression.getText()));
+
+            return OfpType.BOOL;
+        }
+
+        return checkExpression(super.visitBoolExpr(ctx), OfpType.BOOL, ctx);
     }
 
     @Override
