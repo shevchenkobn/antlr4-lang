@@ -15,6 +15,7 @@ import java.util.ArrayList;
 public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
 
     private static final ArrayList<OfpType> LengthDefinedTypes = new ArrayList<>();
+    private static final ArrayList<OfpType> PrintableTypes = new ArrayList<>();
 
     private FunctionSymbol currentFunction;
     private Scope<VariableSymbol> currentScope;
@@ -24,6 +25,12 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
         LengthDefinedTypes.add(OfpType.FLOAT_ARR);
         LengthDefinedTypes.add(OfpType.CHAR_ARR);
         LengthDefinedTypes.add(OfpType.STRING);
+
+        PrintableTypes.add(OfpType.INT);
+        PrintableTypes.add(OfpType.FLOAT);
+        PrintableTypes.add(OfpType.BOOL);
+        PrintableTypes.add(OfpType.CHAR);
+        PrintableTypes.add(OfpType.STRING);
     }
 
     public TypeCheckingVisitor(Scope<FunctionSymbol> globalScope)
@@ -186,6 +193,15 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
 
         if (leftType != rightType)
             errors.add(new SymbolTypeException(rightType, leftType, rightExpression.getText()));
+
+        return null;
+    }
+
+    @Override
+    public OfpType visitPrintable(OfpPashaievaShevchenkoParser.PrintableContext ctx) {
+        OfpType expressionType = visit(ctx.getChild(0));
+        if (!PrintableTypes.contains(expressionType))
+            errors.add(new SymbolTypeException(expressionType, PrintableTypes.toArray(OfpType[]::new), ctx.getText()));
 
         return null;
     }

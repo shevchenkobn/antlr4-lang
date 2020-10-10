@@ -49,7 +49,9 @@ voidScStatValue : (intDecl
 
 assign : ID ASSIGN expr ;
 arrSet : arrGet ASSIGN
-    (intExpr
+    (complexExpr
+    | variable
+    | intExpr
     | floatExpr
     | charExpr);
 complexExpr : funcCall | arrGet ;
@@ -70,7 +72,7 @@ expr : complexExpr
 
 printExpr : PRINT LRB printable RRB ;
 printlnExpr : PRINTLN LRB printable RRB ;
-printable : intExpr | floatExpr | boolExpr | charExpr | strExpr ;
+printable : complexExpr | variable | intExpr | floatExpr | boolExpr | charExpr | strExpr ;
 
 intDecl : intDef (ASSIGN intExpr)? ;
 floatDecl : floatDef (ASSIGN floatExpr)? ;
