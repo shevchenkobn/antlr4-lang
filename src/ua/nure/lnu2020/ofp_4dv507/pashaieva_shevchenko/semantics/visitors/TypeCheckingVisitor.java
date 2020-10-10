@@ -296,7 +296,7 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
                 errors.add(new SymbolTypeException(parameterType, argumentType, ctx.getText()));
         }
 
-        if (arguments.length != parametersCount)
+        if (arguments.length > parametersCount)
             errors.add(new SymbolException(ctx.getText(), "parameters are missing."));
 
         return function.getType();
