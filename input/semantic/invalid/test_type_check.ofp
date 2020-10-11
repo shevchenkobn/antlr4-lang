@@ -1,0 +1,31 @@
+int getInt() {
+    return 1.224;
+}
+
+void main() {
+    int number = 2;
+    float result = 1.3;
+    bool boolExpr  = 12.2 + number + getInt() == result;
+
+    int firstParameter = 12;
+    float floatValue = func(firstParameter, true, 2);
+    char c = 'a';
+
+    if (number.length > c) {
+        print("Wrong");
+    }
+
+    float index = 2.2;
+    string s = "Hello";
+    char firstChar = s[index];
+    s[index] = 'd';
+
+    char[] arr = {'a', 'A'};
+    int condition = 1;
+    if (condition)
+        print(arr);
+}
+
+int func(float f, bool b, int i, float[] floatArr) {
+    return i;
+}

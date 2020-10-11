@@ -1,0 +1,26 @@
+int testFunc(int[] array, int[] array) {
+    int[] array = {1, 5, 2, 3};
+    int testFunc = array.length;
+
+    return testFunc;
+}
+
+void main() {
+    int sum = a + 231;
+    print (sum);
+
+    bool val = test(21.2);
+
+    while (bFalse) {
+        float[] var = new float[sum];
+        val = true;
+
+        if (val) {
+            int c = testFunc({1,2,3});
+            int sum = 2;
+            println(sum + c);
+        }
+
+        println(sum + c);
+    }
+}

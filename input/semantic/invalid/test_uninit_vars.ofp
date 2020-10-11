@@ -1,0 +1,21 @@
+int testFunc(int[] array) {
+    int t;
+    if (array.length > 0) {
+        t = array.length + 1;
+        println(t);
+    } else {
+        print(t);
+    }
+
+    println(t);
+
+    return array.length;
+}
+
+void main() {
+    float number;
+    float anotherNumber = 2.12;
+
+    if (number == anotherNumber)
+        print(number);
+}

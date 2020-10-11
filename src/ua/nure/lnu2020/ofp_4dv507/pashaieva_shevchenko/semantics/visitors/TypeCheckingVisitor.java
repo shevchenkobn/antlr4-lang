@@ -213,11 +213,15 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
             case FLOAT_ARR:
                 return OfpType.FLOAT;
             case CHAR_ARR:
+                return  OfpType.CHAR;
+            case STRING:
+                if (ctx.parent instanceof OfpPashaievaShevchenkoParser.ArrSetContext)
+                    errors.add(new SymbolException(ctx.parent.getText(), "strings are immutable."));
                 return OfpType.CHAR;
         }
 
         addError(symbolType,
-                 new OfpType[] { OfpType.INT_ARR, OfpType.FLOAT_ARR, OfpType.CHAR_ARR },
+                 new OfpType[] { OfpType.INT_ARR, OfpType.FLOAT_ARR, OfpType.CHAR_ARR, OfpType.STRING },
                  ctx.getChild(0));
 
         return null;

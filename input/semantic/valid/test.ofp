@@ -1,0 +1,37 @@
+int getMax(int[] arr) {
+    int max = -1;
+    int index = 0;
+
+    while(index < arr.length) {
+        if (max < arr[index])
+            max = arr[index];
+
+        index = index + 1;
+    }
+
+    return max;
+}
+
+void customPrint(int[] arr, int max) {
+    int index = 0;
+    while (index < arr.length)  {
+        print(arr[index]);
+        index = index + 1;
+    }
+
+    println(max);
+}
+
+void main() {
+    float firstFloat = 1.0;
+    float secondFloat = 2.0;
+    bool t = true;
+    println(firstFloat - secondFloat > secondFloat == t);
+
+    int length = 5;
+    int[] array = new int[length];
+    array = {1, 2, 3, 4, 5};
+
+    int max = getMax(array);
+    customPrint(array, max);
+}
