@@ -14,12 +14,14 @@ import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.Functio
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.VariableSymbol;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Stack;
 
 public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
 
     private static final ArrayList<OfpType> ComparableTypes = new ArrayList<>();
-    private static final ArrayList<OfpType> LengthDefinedTypes = new ArrayList<>();
+    private static final Map<OfpType, OfpType> ArrayTypeToElemTypeMap = new HashMap<>();
     private static final ArrayList<OfpType> PrintableTypes = new ArrayList<>();
 
     private FunctionSymbol currentFunction;
@@ -27,19 +29,16 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
     private final Stack<OfpPashaievaShevchenkoParser.IntExprContext> intExprStack = new Stack<>();
 
     static {
-        ComparableTypes.add(null);
         ComparableTypes.add(OfpType.INT);
         ComparableTypes.add(OfpType.FLOAT);
         ComparableTypes.add(OfpType.CHAR);
         ComparableTypes.add(OfpType.BOOL);
 
-        LengthDefinedTypes.add(null);
-        LengthDefinedTypes.add(OfpType.INT_ARR);
-        LengthDefinedTypes.add(OfpType.FLOAT_ARR);
-        LengthDefinedTypes.add(OfpType.CHAR_ARR);
-        LengthDefinedTypes.add(OfpType.STRING);
+        ArrayTypeToElemTypeMap.put(OfpType.INT_ARR, OfpType.INT);
+        ArrayTypeToElemTypeMap.put(OfpType.FLOAT_ARR, OfpType.FLOAT);
+        ArrayTypeToElemTypeMap.put(OfpType.CHAR_ARR, OfpType.CHAR);
+        ArrayTypeToElemTypeMap.put(OfpType.STRING, OfpType.CHAR);
 
-        PrintableTypes.add(null);
         PrintableTypes.add(OfpType.INT);
         PrintableTypes.add(OfpType.FLOAT);
         PrintableTypes.add(OfpType.BOOL);
@@ -64,7 +63,6 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
 
     @Override
     public OfpType visitIntExpr(OfpPashaievaShevchenkoParser.IntExprContext ctx) {
-//        return checkExpression(super.visitIntExpr(ctx), OfpType.INT, ctx);
         intExprStack.push(ctx);
         var type = super.visitIntExpr(ctx);
         intExprStack.pop();
@@ -104,7 +102,7 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
             OfpType leftExpressionType = visit(leftExpression);
             OfpType rightExpressionType = visit(rightExpression);
 
-            if (!ComparableTypes.contains(leftExpressionType))
+            if (leftExpressionType != null && !ComparableTypes.contains(leftExpressionType))
                 addError(leftExpressionType,
                         ComparableTypes.toArray(OfpType[]::new),
                         leftExpression);
@@ -202,38 +200,40 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
     @Override
     public OfpType visitArrGet(OfpPashaievaShevchenkoParser.ArrGetContext ctx) {
         OfpType symbolType = visit(ctx.getChild(0));
-        visit(ctx.getChild(2));
+        var index = ctx.getChild(2);
+        var indexType = visit(index);
+        checkExpression(OfpType.INT, indexType, index);
         if (symbolType == null) {
             return null;
         }
 
-        switch (symbolType) {
-            case INT_ARR:
-                return OfpType.INT;
-            case FLOAT_ARR:
-                return OfpType.FLOAT;
-            case CHAR_ARR:
-                return  OfpType.CHAR;
-            case STRING:
-                if (ctx.parent instanceof OfpPashaievaShevchenkoParser.ArrSetContext)
-                    errors.add(new SymbolException(ctx.parent.getText(), "strings are immutable."));
-                return OfpType.CHAR;
+        var elementType = ArrayTypeToElemTypeMap.getOrDefault(symbolType, null);
+
+        if (elementType == null) {
+            addError(symbolType,
+                    ArrayTypeToElemTypeMap.keySet().toArray(OfpType[]::new),
+                    ctx.getChild(0));
         }
-
-        addError(symbolType,
-                 new OfpType[] { OfpType.INT_ARR, OfpType.FLOAT_ARR, OfpType.CHAR_ARR, OfpType.STRING },
-                 ctx.getChild(0));
-
-        return null;
+        return elementType;
     }
 
     @Override
     public OfpType visitArrSet(OfpPashaievaShevchenkoParser.ArrSetContext ctx) {
-        OfpType leftType = visit(ctx.getChild(0));
-        ParseTree rightExpression = ctx.getChild(2);
-        OfpType rightType = visit(rightExpression);
-
-        checkExpression(leftType, rightType, rightExpression);
+        var variable = ctx.getChild(0);
+        OfpType leftType = visit(variable);
+        if (leftType == OfpType.STRING) {
+            var token = getToken(ctx);
+            var error = new SymbolException(token != null ? token.getText() : ctx.getText(), "strings are immutable.");
+            if (token != null) {
+                error.setSourceCodeLine(token.getLine());
+                error.setSourceCodeCharacterInLineIndex(token.getCharPositionInLine());
+            }
+            errors.add(error);
+        } else {
+            ParseTree rightExpression = ctx.getChild(5);
+            OfpType rightType = visit(rightExpression);
+            checkExpression(ArrayTypeToElemTypeMap.getOrDefault(leftType, null), rightType, rightExpression);
+        }
 
         return null;
     }
@@ -241,7 +241,7 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
     @Override
     public OfpType visitPrintable(OfpPashaievaShevchenkoParser.PrintableContext ctx) {
         OfpType expressionType = visit(ctx.getChild(0));
-        if (!PrintableTypes.contains(expressionType))
+        if (expressionType != null && !PrintableTypes.contains(expressionType))
             addError(expressionType, PrintableTypes.toArray(OfpType[]::new), ctx);
 
         return null;
@@ -308,8 +308,8 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
 
         ParseTree leftExpression = ctx.getChild(0);
         OfpType childType = visit(leftExpression);
-        if (!LengthDefinedTypes.contains(childType))
-            addError(childType, LengthDefinedTypes.toArray(OfpType[]::new), leftExpression);
+        if (childType != null && !ArrayTypeToElemTypeMap.containsKey(childType))
+            addError(childType, ArrayTypeToElemTypeMap.keySet().toArray(OfpType[]::new), leftExpression);
 
         return OfpType.INT;
     }
@@ -388,34 +388,37 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
     }
 
     private void addError(OfpType realType, OfpType[] expectedTypes, ParseTree node) {
-        Token token = null;
-        if (node instanceof OfpPashaievaShevchenkoParser.VariableContext) {
-            token = ((TerminalNode)node.getChild(0)).getSymbol();
-        } else if (node instanceof TerminalNode) {
-            token = ((TerminalNode) node).getSymbol();
-        } else if (node instanceof OfpPashaievaShevchenkoParser.IntExprContext
-                || node instanceof OfpPashaievaShevchenkoParser.FloatExprContext
-                || node instanceof OfpPashaievaShevchenkoParser.BoolExprContext
-                || node instanceof OfpPashaievaShevchenkoParser.ExprContext) {
-            var currentNode = node;
-            do {
-                currentNode = currentNode.getChild(currentNode.getChildCount() - 1);
-            } while (!(currentNode instanceof TerminalNode));
-            token = ((TerminalNode)currentNode).getSymbol();
-        } else if (node instanceof OfpPashaievaShevchenkoParser.FuncCallContext) {
-            var currentNode = node;
-            do {
-                currentNode = currentNode.getChild(0);
-            } while (!(currentNode instanceof TerminalNode));
-            token = ((TerminalNode)currentNode).getSymbol();
-        }
+        var token = getToken(node);
         var error = new SymbolTypeException(realType, expectedTypes, token == null ? node.getText() : token.getText());
         if (token != null) {
             error.setSourceCodeLine(token.getLine());
             error.setSourceCodeCharacterInLineIndex(token.getCharPositionInLine());
-        } else {
-            System.out.println(node);
         }
         errors.add(error);
+    }
+
+    private Token getToken(ParseTree node) {
+        if (node instanceof OfpPashaievaShevchenkoParser.VariableContext) {
+            return ((TerminalNode)node.getChild(0)).getSymbol();
+        } else if (node instanceof TerminalNode) {
+             ((TerminalNode) node).getSymbol();
+        } else {
+            var currentNode = node;
+//            node instanceof OfpPashaievaShevchenkoParser.IntExprContext
+//                    || node instanceof OfpPashaievaShevchenkoParser.FloatExprContext
+//                    || node instanceof OfpPashaievaShevchenkoParser.BoolExprContext
+//                    || node instanceof OfpPashaievaShevchenkoParser.ExprContext
+            while (!(currentNode instanceof TerminalNode)) {
+                int i = 0;
+                if (node instanceof OfpPashaievaShevchenkoParser.PrintableContext
+                    || node instanceof OfpPashaievaShevchenkoParser.ArrGetContext) {
+                    i = currentNode.getChildCount() - 1;
+                }
+                currentNode = currentNode.getChild(i);
+            }
+            return ((TerminalNode)currentNode).getSymbol();
+        }
+        System.out.println(node);
+        return null;
     }
 }

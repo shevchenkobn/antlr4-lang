@@ -48,14 +48,14 @@ voidScStatValue : (intDecl
     | printlnExpr ) ;
 
 assign : ID ASSIGN expr ;
-arrSet : arrGet ASSIGN
+arrSet : variable LSB intExpr RSB ASSIGN
     (complexExpr
     | variable
     | intExpr
     | floatExpr
     | charExpr);
 complexExpr : funcCall | arrGet ;
-arrGet : variable LSB intExpr RSB ;
+arrGet : (variable | funcCall) LSB intExpr RSB ;
 funcCall : ID LRB (expr (COMMA expr)*)? RRB ;
 returnExpr : RETURN expr ;
 

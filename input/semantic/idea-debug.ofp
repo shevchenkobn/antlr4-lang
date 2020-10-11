@@ -1,22 +1,14 @@
 void main() {
 float f = 1.0;
-float ff = 2.0;
 int i = 42;
-i = i + a;
-println(f > i == f);
-int res = f(f, ff, 'a');
-res = f(ff, f);
-res = f(4.3, f, 'a', 43, "asdf");
-res = f(false, f, 3, 43, "asdf");
-println(res);
-
 int[] arr = {};
 println(arr[1]);
 arr[0] = 435.4;
 arr[0] = 43;
-println(arr[i]);
+i = f()[0];
+println(f(f, i)[0]);
 }
 
-int f(float f, float ff, char c, int f, string f, char[] ff) {
-return ff;
+int[] f(int a, int b, int c) {
+return {};
 }
