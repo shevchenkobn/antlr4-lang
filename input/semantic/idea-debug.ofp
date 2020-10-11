@@ -2,5 +2,6 @@ void main() {
 float f = 1.0;
 float ff = 2.0;
 int i = 42;
-println(f + ff > i);
+i = i + a;
+println((i + ff + i + f > f + i) == false);
 }

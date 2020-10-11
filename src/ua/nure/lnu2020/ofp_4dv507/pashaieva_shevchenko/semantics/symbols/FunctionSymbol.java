@@ -43,7 +43,7 @@ public class FunctionSymbol extends Symbol {
 
     public FunctionSymbol(OfpType type, String name, Scope<VariableSymbol> enclosingVariableScope, ParameterSymbol[] arguments) {
         super(type, name);
-        variableScope = new Scope<>(enclosingVariableScope, null);
+        variableScope = new Scope<>(enclosingVariableScope, null, VariableSymbol::new);
         for (var argument : arguments) {
             try {
                 variableScope.define(argument);
@@ -80,6 +80,7 @@ public class FunctionSymbol extends Symbol {
             if (function != null) {
                 throw new SymbolException(name, "parameter already belongs to function.");
             }
+            function = value;
         }
 
         public ParameterSymbol(OfpType type, String name) {

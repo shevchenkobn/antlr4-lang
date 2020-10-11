@@ -43,7 +43,7 @@ public class Main {
 
             // Building Symbol Table
             var walker = new ParseTreeWalker();
-            var globalScope = new Scope<FunctionSymbol>(null, null);
+            var globalScope = new Scope<>(null, null, FunctionSymbol::new);
             var foundErrors = false;
 
             for (BaseOfpListener listener : getListeners(globalScope)) {
@@ -53,24 +53,20 @@ public class Main {
                     System.out.println();
                 }
 
-                foundErrors = foundErrors | processErrors(listener.getErrors());
-            }
-
-            if (foundErrors){
-                System.err.printf("Semantic errors in file '%s'. See the errors above.\n", sourceFileName);
-                System.exit(1);
+                foundErrors |= processErrors(listener.getErrors());
             }
 
             //Check types
             var visitor = new TypeCheckingVisitor(globalScope);
             visitor.visit(programTree);
+            foundErrors |= processErrors(visitor.getErrors());
 
-            if (processErrors(visitor.getErrors())) {
-                System.err.printf("Type inconsistency errors in file '%s'. See the errors above.\n", sourceFileName);
+            if (foundErrors){
+                System.err.printf("Semantic errors in file '%s'. See the errors above.\n", sourceFileName);
                 System.exit(1);
+            } else {
+                System.out.println("\nOK");
             }
-
-            System.out.println("\nOK");
         } catch (IOException exception) {
             System.err.println("Failed to read input file: " + sourceFileName);
             exception.printStackTrace();

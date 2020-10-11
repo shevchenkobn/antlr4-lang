@@ -28,9 +28,9 @@ public class SymbolTypeException extends SymbolException {
     private static String getMessage(OfpType symbolType, OfpType[] expectedTypes){
         String[] typeNames = new String[expectedTypes.length];
         for (int i = 0; i < expectedTypes.length; i++)
-            typeNames[i] = expectedTypes[i] != null ? expectedTypes[i].toString() : "<any>";
+            typeNames[i] = expectedTypes[i] != null ? "'" + expectedTypes[i].toString() + "'" : "<any>";
 
-        String symbolName = symbolType != null ? symbolType.getName() : "<unknown>";
-        return String.format("type '%s' %s '%s'", symbolName, MESSAGE, String.join(", ",typeNames));
+        String symbolName = symbolType != null ? "'" + symbolType.getName() + "'" : "<unknown>";
+        return String.format("type %s %s %s", symbolName, MESSAGE, String.join(", ",typeNames));
     }
 }

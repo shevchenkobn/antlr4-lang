@@ -173,7 +173,7 @@ public class SymbolTableConstructionListener extends BaseOfpListener {
     }
 
     private void processInnerBlockStart(ParseTree parseTree) {
-        scope = new Scope<>(scope, parseTree);
+        scope = new Scope<>(scope, parseTree, VariableSymbol::new);
     }
 
     private void processBlockFinish() {
