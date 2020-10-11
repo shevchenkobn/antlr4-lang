@@ -12,7 +12,6 @@ import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.Retu
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.FunctionSymbol;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.VariableSymbol;
 
-import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 
 public class SymbolTableConstructionListener extends BaseOfpListener {

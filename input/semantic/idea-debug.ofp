@@ -2,11 +2,8 @@ void main() {
 float f = 1.0;
 int i = 42;
 int[] arr = {};
-println(arr[1]);
-arr[0] = 435.4;
-arr[0] = 43;
-i = f()[0];
-println(f(f, i)[0]);
+println(arr[f]);
+arr[f] = 43;
 }
 
 int[] f(int a, int b, int c) {

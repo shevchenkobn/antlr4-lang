@@ -199,10 +199,8 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
 
     @Override
     public OfpType visitArrGet(OfpPashaievaShevchenkoParser.ArrGetContext ctx) {
+        checkArrIndex(ctx);
         OfpType symbolType = visit(ctx.getChild(0));
-        var index = ctx.getChild(2);
-        var indexType = visit(index);
-        checkExpression(OfpType.INT, indexType, index);
         if (symbolType == null) {
             return null;
         }
@@ -219,6 +217,7 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
 
     @Override
     public OfpType visitArrSet(OfpPashaievaShevchenkoParser.ArrSetContext ctx) {
+        checkArrIndex(ctx);
         var variable = ctx.getChild(0);
         OfpType leftType = visit(variable);
         if (leftType == OfpType.STRING) {
@@ -364,6 +363,12 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
             return super.aggregateResult(aggregate, nextResult);
         }
         return checkExpression(aggregate, nextResult, intExprStack.peek());
+    }
+
+    private void checkArrIndex(ParserRuleContext ctx) {
+        var index = ctx.getChild(2);
+        var indexType = visit(index);
+        checkExpression(OfpType.INT, indexType, index);
     }
 
     private void enterScope(ParserRuleContext ctx) {
