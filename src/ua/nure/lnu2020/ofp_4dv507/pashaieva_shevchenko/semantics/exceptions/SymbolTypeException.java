@@ -3,7 +3,7 @@ package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.OfpType;
 
 public class SymbolTypeException extends SymbolException {
-    private static final String MESSAGE = " is invalid. Expected types: ";
+    private static final String MESSAGE = "is invalid. Expected types:";
 
     public SymbolTypeException(OfpType symbolType, OfpType expectedType, String symbolName) {
         super(symbolName, getMessage(symbolType, expectedType));
@@ -28,9 +28,9 @@ public class SymbolTypeException extends SymbolException {
     private static String getMessage(OfpType symbolType, OfpType[] expectedTypes){
         String[] typeNames = new String[expectedTypes.length];
         for (int i = 0; i < expectedTypes.length; i++)
-            typeNames[i] = expectedTypes[i].getName();
+            typeNames[i] = expectedTypes[i] != null ? "'" + expectedTypes[i].toString() + "'" : "<any>";
 
-        String symbolName = symbolType != null ? symbolType.getName() : "VOID";
-        return String.format("type '%s' %s '%s'", symbolName, MESSAGE, String.join(", ",typeNames));
+        String symbolName = symbolType != null ? "'" + symbolType.getName() + "'" : "<unknown>";
+        return String.format("type %s %s %s", symbolName, MESSAGE, String.join(", ",typeNames));
     }
 }

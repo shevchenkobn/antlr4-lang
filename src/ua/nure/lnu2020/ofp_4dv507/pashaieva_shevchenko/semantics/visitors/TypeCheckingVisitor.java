@@ -1,17 +1,20 @@
 package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.visitors;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.parsing.OfpPashaievaShevchenkoParser;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.OfpType;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.Scope;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.SymbolException;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.SymbolNotDeclaredException;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.SymbolTypeException;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.FunctionSymbol;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.VariableSymbol;
 
 import java.util.ArrayList;
+import java.util.Stack;
 
 public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
 
@@ -21,18 +24,22 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
 
     private FunctionSymbol currentFunction;
     private Scope<VariableSymbol> currentScope;
+    private final Stack<OfpPashaievaShevchenkoParser.IntExprContext> intExprStack = new Stack<>();
 
     static {
+        ComparableTypes.add(null);
         ComparableTypes.add(OfpType.INT);
         ComparableTypes.add(OfpType.FLOAT);
         ComparableTypes.add(OfpType.CHAR);
         ComparableTypes.add(OfpType.BOOL);
 
+        LengthDefinedTypes.add(null);
         LengthDefinedTypes.add(OfpType.INT_ARR);
         LengthDefinedTypes.add(OfpType.FLOAT_ARR);
         LengthDefinedTypes.add(OfpType.CHAR_ARR);
         LengthDefinedTypes.add(OfpType.STRING);
 
+        PrintableTypes.add(null);
         PrintableTypes.add(OfpType.INT);
         PrintableTypes.add(OfpType.FLOAT);
         PrintableTypes.add(OfpType.BOOL);
@@ -57,12 +64,16 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
 
     @Override
     public OfpType visitIntExpr(OfpPashaievaShevchenkoParser.IntExprContext ctx) {
-        return checkExpression(super.visitIntExpr(ctx), OfpType.INT, ctx);
+//        return checkExpression(super.visitIntExpr(ctx), OfpType.INT, ctx);
+        intExprStack.push(ctx);
+        var type = super.visitIntExpr(ctx);
+        intExprStack.pop();
+        return type;
     }
 
     @Override
     public OfpType visitFloatExpr(OfpPashaievaShevchenkoParser.FloatExprContext ctx) {
-        return checkExpression(super.visitFloatExpr(ctx), OfpType.FLOAT, ctx);
+        return checkExpression(OfpType.FLOAT, super.visitFloatExpr(ctx), ctx);
     }
 
     @Override
@@ -70,7 +81,7 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
         if (ctx.STRING() != null)
             return OfpType.STRING;
 
-        return checkExpression(super.visitStrExpr(ctx), OfpType.STRING, ctx);
+        return checkExpression(OfpType.STRING, super.visitStrExpr(ctx), ctx);
     }
 
     @Override
@@ -78,7 +89,7 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
         if (ctx.QUOTED_CHAR() != null)
             return OfpType.CHAR;
 
-        return checkExpression(super.visitCharExpr(ctx), OfpType.CHAR, ctx);
+        return checkExpression(OfpType.CHAR, super.visitCharExpr(ctx), ctx);
     }
 
     @Override
@@ -94,25 +105,22 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
             OfpType rightExpressionType = visit(rightExpression);
 
             if (!ComparableTypes.contains(leftExpressionType))
-                errors.add(new SymbolTypeException(leftExpressionType,
+                addError(leftExpressionType,
                         ComparableTypes.toArray(OfpType[]::new),
-                        leftExpression.getText()));
+                        leftExpression);
 
             if ((ctx.GT() != null || ctx.LT() != null)
-                    && (leftExpressionType != OfpType.INT && leftExpressionType != OfpType.FLOAT))
-                errors.add(new SymbolTypeException(leftExpressionType,
+                    && leftExpressionType != null && leftExpressionType != OfpType.INT && leftExpressionType != OfpType.FLOAT)
+                addError(leftExpressionType,
                         new OfpType[] {OfpType.INT, OfpType.FLOAT},
-                        leftExpression.getText()));
+                        leftExpression);
 
-            if (leftExpressionType != rightExpressionType)
-                errors.add(new SymbolTypeException(rightExpressionType,
-                        leftExpressionType,
-                        rightExpression.getText()));
+            checkExpression(leftExpressionType, rightExpressionType, rightExpression);
 
             return OfpType.BOOL;
         }
 
-        return checkExpression(super.visitBoolExpr(ctx), OfpType.BOOL, ctx);
+        return checkExpression(OfpType.BOOL, super.visitBoolExpr(ctx), ctx);
     }
 
     @Override
@@ -153,22 +161,22 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
 
     @Override
     public OfpType visitIntArrExpr(OfpPashaievaShevchenkoParser.IntArrExprContext ctx) {
-        return checkExpression(super.visitIntArrExpr(ctx), OfpType.INT_ARR, ctx);
+        return checkExpression(OfpType.INT_ARR, super.visitIntArrExpr(ctx), ctx);
     }
 
     @Override
     public OfpType visitFloatArrExpr(OfpPashaievaShevchenkoParser.FloatArrExprContext ctx) {
-        return checkExpression(super.visitFloatArrExpr(ctx), OfpType.FLOAT_ARR, ctx);
+        return checkExpression(OfpType.FLOAT_ARR, super.visitFloatArrExpr(ctx), ctx);
     }
 
     @Override
     public OfpType visitCharArrExpr(OfpPashaievaShevchenkoParser.CharArrExprContext ctx) {
-        return checkExpression(super.visitCharArrExpr(ctx), OfpType.CHAR_ARR, ctx);
+        return checkExpression(OfpType.CHAR_ARR, super.visitCharArrExpr(ctx), ctx);
     }
 
     @Override
     public OfpType visitVariable(OfpPashaievaShevchenkoParser.VariableContext ctx) {
-        return currentScope.resolve(ctx.ID().getText()).getType();
+        return currentScope.tryResolve(ctx.ID().getText()).getType();
     }
 
     @Override
@@ -176,19 +184,17 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
         ParseTree expression = ctx.getChild(1);
         OfpType expressionType = visit(expression);
 
-        if (expressionType != currentFunction.getType())
-            errors.add(new SymbolTypeException(expressionType, currentFunction.getType(), expression.getText()));
+        checkExpression(currentFunction.getType(), expressionType, expression);
 
         return null;
     }
 
     @Override
     public OfpType visitAssign(OfpPashaievaShevchenkoParser.AssignContext ctx) {
-        OfpType variableType = currentScope.resolve(ctx.ID().getText()).getType();
+        OfpType variableType = currentScope.tryResolve(ctx.ID().getText()).getType();
         OfpType expressionType = visit(ctx.getChild(2));
 
-        if (variableType != expressionType)
-            errors.add(new SymbolTypeException(expressionType, variableType, ctx.getChild(2).getText()));
+        checkExpression(variableType, expressionType, ctx.getChild(2));
 
         return null;
     }
@@ -197,6 +203,9 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
     public OfpType visitArrGet(OfpPashaievaShevchenkoParser.ArrGetContext ctx) {
         OfpType symbolType = visit(ctx.getChild(0));
         visit(ctx.getChild(2));
+        if (symbolType == null) {
+            return null;
+        }
 
         switch (symbolType) {
             case INT_ARR:
@@ -207,11 +216,11 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
                 return OfpType.CHAR;
         }
 
-        errors.add(new SymbolTypeException(symbolType,
-                        new OfpType[]{OfpType.INT_ARR, OfpType.FLOAT_ARR, OfpType.CHAR_ARR},
-                        ctx.getChild(0).getText()));
+        addError(symbolType,
+                 new OfpType[] { OfpType.INT_ARR, OfpType.FLOAT_ARR, OfpType.CHAR_ARR },
+                 ctx.getChild(0));
 
-        return OfpType.INT;
+        return null;
     }
 
     @Override
@@ -220,8 +229,7 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
         ParseTree rightExpression = ctx.getChild(2);
         OfpType rightType = visit(rightExpression);
 
-        if (leftType != rightType)
-            errors.add(new SymbolTypeException(rightType, leftType, rightExpression.getText()));
+        checkExpression(leftType, rightType, rightExpression);
 
         return null;
     }
@@ -230,14 +238,14 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
     public OfpType visitPrintable(OfpPashaievaShevchenkoParser.PrintableContext ctx) {
         OfpType expressionType = visit(ctx.getChild(0));
         if (!PrintableTypes.contains(expressionType))
-            errors.add(new SymbolTypeException(expressionType, PrintableTypes.toArray(OfpType[]::new), ctx.getText()));
+            addError(expressionType, PrintableTypes.toArray(OfpType[]::new), ctx);
 
         return null;
     }
 
     @Override
     public OfpType visitMainDef(OfpPashaievaShevchenkoParser.MainDefContext ctx) {
-        currentFunction = globalScope.resolve("main");
+        currentFunction = globalScope.tryResolve("main");
         super.visitMainDef(ctx);
         currentScope = null;
 
@@ -246,7 +254,7 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
 
     @Override
     public OfpType visitVoidFuncDef(OfpPashaievaShevchenkoParser.VoidFuncDefContext ctx) {
-        currentFunction = globalScope.resolve(ctx.ID().getText());
+        currentFunction = globalScope.tryResolve(ctx.ID().getText());
         super.visitVoidFuncDef(ctx);
         currentScope = null;
 
@@ -255,7 +263,7 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
 
     @Override
     public OfpType visitFuncDef(OfpPashaievaShevchenkoParser.FuncDefContext ctx) {
-        currentFunction = globalScope.resolve(ctx.ID().getText());
+        currentFunction = globalScope.tryResolve(ctx.ID().getText());
         super.visitFuncDef(ctx);
         currentScope = null;
 
@@ -297,14 +305,20 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
         ParseTree leftExpression = ctx.getChild(0);
         OfpType childType = visit(leftExpression);
         if (!LengthDefinedTypes.contains(childType))
-            errors.add(new SymbolTypeException(childType, LengthDefinedTypes.toArray(OfpType[]::new), leftExpression.getText()));
+            addError(childType, LengthDefinedTypes.toArray(OfpType[]::new), leftExpression);
 
         return OfpType.INT;
     }
 
     @Override
     public OfpType visitFuncCall(OfpPashaievaShevchenkoParser.FuncCallContext ctx) {
-        FunctionSymbol function = globalScope.resolve(ctx.ID().getText());
+        FunctionSymbol function;
+        var functionName = ctx.ID();
+        try {
+            function = globalScope.resolve(functionName.getText());
+        } catch (SymbolNotDeclaredException exception) {
+            return null;
+        }
         var arguments = function.getArguments();
 
         var parametersCount = 0;
@@ -314,21 +328,38 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
 
             parametersCount++;
             if (arguments.length < parametersCount) {
-                errors.add(new SymbolException(ctx.getText(), "redundant parameters are specified in function call."));
+                var token = functionName.getSymbol();
+                var error = new SymbolException(token.getText(), parametersCount - arguments.length + " redundant parameters are specified in function call.");
+                error.setSourceCodeLine(token.getLine());
+                error.setSourceCodeCharacterInLineIndex(token.getCharPositionInLine());
+                errors.add(error);
                 break;
             }
 
             OfpType parameterType = visit(parameter);
             OfpType argumentType = arguments[parametersCount - 1].getType();
 
-            if (argumentType != parameterType)
-                errors.add(new SymbolTypeException(parameterType, argumentType, ctx.getText()));
+
+            checkExpression(argumentType, parameterType, ctx);
         }
 
-        if (arguments.length > parametersCount)
-            errors.add(new SymbolException(ctx.getText(), "parameters are missing."));
+        if (arguments.length > parametersCount) {
+            var token = functionName.getSymbol();
+            var error = new SymbolException(token.getText(), arguments.length - parametersCount + " parameters are missing.");
+            error.setSourceCodeLine(token.getLine());
+            error.setSourceCodeCharacterInLineIndex(token.getCharPositionInLine());
+            errors.add(error);
+        }
 
         return function.getType();
+    }
+
+    @Override
+    protected OfpType aggregateResult(OfpType aggregate, OfpType nextResult) {
+        if (intExprStack.empty()) {
+            return super.aggregateResult(aggregate, nextResult);
+        }
+        return checkExpression(aggregate, nextResult, intExprStack.peek());
     }
 
     private void enterScope(ParserRuleContext ctx) {
@@ -340,10 +371,47 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
         currentScope = currentScope.getEnclosedScope(ctx);
     }
 
-    private OfpType checkExpression(OfpType realType, OfpType expectedType, ParserRuleContext ctx) {
-        if (realType != expectedType)
-            errors.add(new SymbolTypeException(realType, expectedType, ctx.getText()));
+    private OfpType checkExpression(OfpType expectedType, OfpType realType, ParseTree node) {
+        if (expectedType != null && realType != null && realType != expectedType) {
+            addError(realType, expectedType, node);
+        }
 
-        return expectedType;
+        return expectedType != null ? expectedType : realType;
+    }
+
+    private void addError(OfpType realType, OfpType expectedType, ParseTree node) {
+        addError(realType, new OfpType[] { expectedType }, node);
+    }
+
+    private void addError(OfpType realType, OfpType[] expectedTypes, ParseTree node) {
+        Token token = null;
+        if (node instanceof OfpPashaievaShevchenkoParser.VariableContext) {
+            token = ((TerminalNode)node.getChild(0)).getSymbol();
+        } else if (node instanceof TerminalNode) {
+            token = ((TerminalNode) node).getSymbol();
+        } else if (node instanceof OfpPashaievaShevchenkoParser.IntExprContext
+                || node instanceof OfpPashaievaShevchenkoParser.FloatExprContext
+                || node instanceof OfpPashaievaShevchenkoParser.BoolExprContext
+                || node instanceof OfpPashaievaShevchenkoParser.ExprContext) {
+            var currentNode = node;
+            do {
+                currentNode = currentNode.getChild(currentNode.getChildCount() - 1);
+            } while (!(currentNode instanceof TerminalNode));
+            token = ((TerminalNode)currentNode).getSymbol();
+        } else if (node instanceof OfpPashaievaShevchenkoParser.FuncCallContext) {
+            var currentNode = node;
+            do {
+                currentNode = currentNode.getChild(0);
+            } while (!(currentNode instanceof TerminalNode));
+            token = ((TerminalNode)currentNode).getSymbol();
+        }
+        var error = new SymbolTypeException(realType, expectedTypes, token == null ? node.getText() : token.getText());
+        if (token != null) {
+            error.setSourceCodeLine(token.getLine());
+            error.setSourceCodeCharacterInLineIndex(token.getCharPositionInLine());
+        } else {
+            System.out.println(node);
+        }
+        errors.add(error);
     }
 }

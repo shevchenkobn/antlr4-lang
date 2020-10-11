@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.DuplicateSymbolException;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.SymbolNotDeclaredException;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.Symbol;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.VariableSymbol;
 
 import java.io.IOException;
 import java.util.*;
@@ -15,6 +16,7 @@ public class Scope<S extends Symbol> {
     private final Scope<S> enclosingScope;
     private final Map<ParseTree, Scope<S>> enclosedScopes = new HashMap<>();
     private final Map<String, S> symbols = new LinkedHashMap<>();
+    private final SymbolFactory<S> symbolFactory;
 
     public Scope<S> getEnclosingScope() {
         return enclosingScope;
@@ -28,11 +30,15 @@ public class Scope<S extends Symbol> {
         return enclosedScopes.get(parseTree);
     }
 
-    public Scope(Scope<S> enclosingScope, ParseTree parseTree) {
+    public Scope(Scope<S> enclosingScope, ParseTree parseTree, SymbolFactory<S> symbolFactory) {
         this.enclosingScope = enclosingScope;
         if (this.enclosingScope != null) {
             this.enclosingScope.enclosedScopes.put(parseTree,this);
         }
+        if (symbolFactory == null) {
+            throw new NullPointerException("symbol factory");
+        }
+        this.symbolFactory = symbolFactory;
     }
 
     public void define(S sym) throws DuplicateSymbolException {
@@ -42,10 +48,17 @@ public class Scope<S extends Symbol> {
         symbols.put(sym.getName(), sym);
     }
 
+    public S tryResolve(String name) {
+        try {
+            return resolve(name);
+        } catch (SymbolNotDeclaredException exception) {
+            return symbolFactory.apply(null, name);
+        }
+    }
+
     /**
      * If a name cannot be resolved in this scope,
      * try enclosing/parent scope recursively.
-     * If null is returned, name/identifier not found in the symbol table!
      */
     public S resolve(String name) throws SymbolNotDeclaredException {
         if (symbols.containsKey(name)) {
@@ -161,5 +174,10 @@ public class Scope<S extends Symbol> {
                 .append("symbols=Array[")
                 .append(symbols.size()).append("], enclosedScopes=Array[")
                 .append(enclosedScopes.size()).append("]}").toString();
+    }
+
+    @FunctionalInterface
+    public interface SymbolFactory<S> {
+        S apply(OfpType type, String name);
     }
 }

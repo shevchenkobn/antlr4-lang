@@ -106,9 +106,6 @@ newCharArr : NEW DT_CHAR LSB intExpr RSB ;
 lengthRead : (intArr | floatArr | charArr | funcCall | STRING | variable) LENGTH ;
 
 boolExpr : LRB boolExpr RRB
-    | variable EQ variable
-    | variable GT variable
-    | variable LT variable
     | complexExpr EQ complexExpr
     | complexExpr GT complexExpr
     | complexExpr LT complexExpr
