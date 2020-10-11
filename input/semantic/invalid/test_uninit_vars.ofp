@@ -13,9 +13,17 @@ int testFunc(int[] array) {
 }
 
 void main() {
+    print("Hello, ");
+    print(name);
+    print(exp(2, 8));
+    println("!");
+
     float number;
     float anotherNumber = 2.12;
 
     if (number == anotherNumber)
         print(number);
+
+    int[] myArr;
+    testFunc(myArr);
 }
