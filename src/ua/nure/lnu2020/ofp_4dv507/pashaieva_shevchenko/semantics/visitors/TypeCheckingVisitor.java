@@ -313,8 +313,9 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
     @Override
     public OfpType visitFuncCall(OfpPashaievaShevchenkoParser.FuncCallContext ctx) {
         FunctionSymbol function;
+        var functionName = ctx.ID();
         try {
-            function = globalScope.resolve(ctx.ID().getText());
+            function = globalScope.resolve(functionName.getText());
         } catch (SymbolNotDeclaredException exception) {
             return null;
         }
@@ -327,7 +328,11 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
 
             parametersCount++;
             if (arguments.length < parametersCount) {
-                errors.add(new SymbolException(ctx.getText(), "redundant parameters are specified in function call."));
+                var token = functionName.getSymbol();
+                var error = new SymbolException(token.getText(), parametersCount - arguments.length + " redundant parameters are specified in function call.");
+                error.setSourceCodeLine(token.getLine());
+                error.setSourceCodeCharacterInLineIndex(token.getCharPositionInLine());
+                errors.add(error);
                 break;
             }
 
@@ -338,8 +343,13 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
             checkExpression(argumentType, parameterType, ctx);
         }
 
-        if (arguments.length > parametersCount)
-            errors.add(new SymbolException(ctx.getText(), "parameters are missing."));
+        if (arguments.length > parametersCount) {
+            var token = functionName.getSymbol();
+            var error = new SymbolException(token.getText(), arguments.length - parametersCount + " parameters are missing.");
+            error.setSourceCodeLine(token.getLine());
+            error.setSourceCodeCharacterInLineIndex(token.getCharPositionInLine());
+            errors.add(error);
+        }
 
         return function.getType();
     }
@@ -380,10 +390,18 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
         } else if (node instanceof TerminalNode) {
             token = ((TerminalNode) node).getSymbol();
         } else if (node instanceof OfpPashaievaShevchenkoParser.IntExprContext
-                || node instanceof OfpPashaievaShevchenkoParser.FloatExprContext) {
+                || node instanceof OfpPashaievaShevchenkoParser.FloatExprContext
+                || node instanceof OfpPashaievaShevchenkoParser.BoolExprContext
+                || node instanceof OfpPashaievaShevchenkoParser.ExprContext) {
             var currentNode = node;
             do {
                 currentNode = currentNode.getChild(currentNode.getChildCount() - 1);
+            } while (!(currentNode instanceof TerminalNode));
+            token = ((TerminalNode)currentNode).getSymbol();
+        } else if (node instanceof OfpPashaievaShevchenkoParser.FuncCallContext) {
+            var currentNode = node;
+            do {
+                currentNode = currentNode.getChild(0);
             } while (!(currentNode instanceof TerminalNode));
             token = ((TerminalNode)currentNode).getSymbol();
         }

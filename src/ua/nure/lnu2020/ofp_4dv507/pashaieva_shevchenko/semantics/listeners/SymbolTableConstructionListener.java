@@ -12,13 +12,14 @@ import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.Retu
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.FunctionSymbol;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.VariableSymbol;
 
+import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
+
 public class SymbolTableConstructionListener extends BaseOfpListener {
     private final FunctionMap functions = new FunctionMap();
 
-    private FunctionSymbol function;
     private Scope<VariableSymbol> scope;
-    private FunctionSymbol.ParameterSymbol[] functionArguments;
-    private int functionParameterIndex = -1;
+    private LinkedHashMap<Token, FunctionSymbol.ParameterSymbol> functionArgumentsMap;
     private OfpType functionType;
     private TerminalNode functionName;
     private ParseTree functionNode;
@@ -137,12 +138,11 @@ public class SymbolTableConstructionListener extends BaseOfpListener {
     }
 
     private void startFunctionArgs(int length) {
-        functionArguments = new FunctionSymbol.ParameterSymbol[length];
-        functionParameterIndex = 0;
+        functionArgumentsMap = new LinkedHashMap<>(length);
     }
 
     private boolean isInFunctionBody() {
-        return this.functionArguments == null;
+        return this.functionArgumentsMap == null;
     }
 
     private void processVariableDefinition(TerminalNode type, TerminalNode name) {
@@ -157,10 +157,10 @@ public class SymbolTableConstructionListener extends BaseOfpListener {
                 this.errors.add(exception);
             }
         } else {
-            functionArguments[functionParameterIndex] = new FunctionSymbol.ParameterSymbol(
-                    OfpType.getByName(type.getText()),
-                    name.getText());
-            functionParameterIndex += 1;
+            var token = name.getSymbol();
+            functionArgumentsMap.put(token, new FunctionSymbol.ParameterSymbol(
+                            OfpType.getByName(type.getText()),
+                            name.getText()));
         }
     }
 
@@ -181,7 +181,7 @@ public class SymbolTableConstructionListener extends BaseOfpListener {
     }
 
     private void processFunctionHeader() {
-        function = new FunctionSymbol(this.functionType, this.functionName.getText(), functionArguments);
+        var function = new FunctionSymbol(this.functionType, this.functionName.getText(), functionArgumentsMap);
         if (function.getParameterExceptions() != null) {
             var token = functionName.getSymbol();
             for (var error : function.getParameterExceptions()) {
@@ -203,8 +203,7 @@ public class SymbolTableConstructionListener extends BaseOfpListener {
         this.functionType = null;
         this.functionName = null;
         this.functionNode = null;
-        this.functionArguments = null;
-        this.functionParameterIndex = -1;
+        this.functionArgumentsMap = null;
     }
 
     private void startTrackingReturn() {
