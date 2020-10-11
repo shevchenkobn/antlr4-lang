@@ -91,6 +91,7 @@ public class Main {
 
         for (var exception : errors) {
             System.err.println(exception.toString());
+//            exception.printStackTrace();
         }
 
         return true;

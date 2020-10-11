@@ -1,38 +1,6 @@
-
-int func(int[] arr, float d) {
-int var;
-float as;
-if (var < 0) {
-char var;
-while (true) {
-float[] var = new float[4];
-return 3;
-}
-}
-}
-
-void funcR(int[] arr, float d) {
-int var = 4 + (4 + (4 + b));
-float asQ;
-if (var < 0) {
-char varR;
-while (true) {
-float[] var = new float[4];
-
-}
-}
-}
-# comment
 void main() {
-int var;
-bool kek;
-if (var < 0) {
-char var;
-while (kek) {
-float[] var = new float[4];
-}
-if (var > 0) {
-char[] kek;
-}
-}
+float f = 1.0;
+float ff = 2.0;
+int i = 42;
+println(f + ff > i);
 }
