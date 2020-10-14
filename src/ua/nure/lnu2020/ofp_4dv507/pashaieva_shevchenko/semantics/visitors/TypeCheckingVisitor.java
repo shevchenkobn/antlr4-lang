@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
+public class TypeCheckingVisitor extends BaseOfpVisitor<OfpType> {
 
     private static final ArrayList<OfpType> ComparableTypes = new ArrayList<>();
     private static final Map<OfpType, OfpType> ArrayTypeToElemTypeMap = new HashMap<>();
