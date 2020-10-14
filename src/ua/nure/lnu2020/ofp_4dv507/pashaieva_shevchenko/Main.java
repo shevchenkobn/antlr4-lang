@@ -66,6 +66,7 @@ public class Main {
 
             if (foundErrors){
                 System.err.printf("Semantic errors in file '%s'. See the errors above.\n", sourceFileName);
+                System.exit(1);
             }
 
             if (args.length > 1) {
@@ -75,7 +76,7 @@ public class Main {
                     var pythonGenerator = new PythonCodeGenerator(globalScope, output);
                     pythonGenerator.visit(programTree);
 
-                    foundErrors |= processErrors(pythonGenerator.getErrors(), "\n\nUnexpected errors during Python code generation:");
+                    foundErrors = processErrors(pythonGenerator.getErrors(), "\n\nUnexpected errors during Python code generation:");
                 } else {
                     System.err.printf("Couldn't infer target language by file extension in '%s'\n", args[2]);
                     System.exit(1);

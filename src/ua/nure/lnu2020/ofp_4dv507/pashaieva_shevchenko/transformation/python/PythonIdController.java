@@ -63,6 +63,11 @@ public class PythonIdController {
         throw new SymbolNotDeclaredException(variableName);
     }
 
+    public String[] getScopeDefinedVariables() {
+        assertNonEmpty();
+        return scopes.peek().values().stream().map(PythonId::getId).toArray(String[]::new);
+    }
+
     private static String getSafeId(String id) {
         return reservedIds.contains(id) ? "ofp_" + id : id;
     }
