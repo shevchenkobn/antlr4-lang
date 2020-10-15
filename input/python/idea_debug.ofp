@@ -1,0 +1,13 @@
+void main() {
+    float f = sum(42.0);
+    print(sum(42.0));
+    println(f * notPython());
+}
+
+float sum(float a) {
+    return a + a;
+}
+
+float notPython() {
+    return 1.1234345;
+}

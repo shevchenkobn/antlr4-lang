@@ -70,15 +70,18 @@ public class Main {
             }
 
             if (args.length > 1) {
-                if (args[2].endsWith("py")) {
-                    System.out.println("\n\nGenerating Python code...");
-                    var output = new FileWriter(args[2]);
-                    var pythonGenerator = new PythonCodeGenerator(globalScope, output);
-                    pythonGenerator.visit(programTree);
+                if (args[1].endsWith("py")) {
+                    System.out.println("\nGenerating Python code...");
+                    PythonCodeGenerator pythonGenerator;
+                    try (var output = new FileWriter(args[1])) {
+                        pythonGenerator = new PythonCodeGenerator(globalScope, output);
+                        pythonGenerator.visit(programTree);
+                        output.flush();
+                    }
 
                     foundErrors = processErrors(pythonGenerator.getErrors(), "\n\nUnexpected errors during Python code generation:");
                 } else {
-                    System.err.printf("Couldn't infer target language by file extension in '%s'\n", args[2]);
+                    System.err.printf("Couldn't infer target language by file extension in '%s'\n", args[1]);
                     System.exit(1);
                 }
             }
