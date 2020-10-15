@@ -270,7 +270,7 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
         try {
             output.append("print(");
             visitPrintable(ctx.printable());
-            output.append(", end=’’)");
+            output.append(", end='')");
         } catch (IOException exception) {
             errors.add(new OfpSourceCodeException("failed to write print statement: " + exception.getMessage(),
                     exception));
@@ -645,7 +645,7 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
         if (DECL_STATEMENTS_CLASSES.contains(possibleDeclaration.getClass())) {
             var variableName = possibleDeclaration.getChild(0).getChild(1).getText();
             idController.defineVariable(variableName);
-            if (statement.getChildCount() == 1) {
+            if (possibleDeclaration.getChildCount() == 1) {
                 return;
             }
             output.append(getIndent());
