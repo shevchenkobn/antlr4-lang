@@ -413,7 +413,7 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
         try {
             var literal = ctx.STRING();
             if (literal != null) {
-                output.append('"').append(literal.getText()).append('"');
+                output.append(literal.getText());
             } else {
                 visit(ctx.getChild(0));
             }
@@ -429,7 +429,7 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
         try {
             var literal = ctx.QUOTED_CHAR();
             if (literal != null) {
-                output.append('\'').append(literal.getText()).append('\'');
+                output.append(literal.getText());
             } else {
                 visit(ctx.getChild(0));
             }
