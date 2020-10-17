@@ -42,6 +42,9 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
     public PythonCodeGenerator(Scope<FunctionSymbol> globalScope, Appendable output) {
         super(globalScope);
         idController = new PythonIdController(globalScope.size());
+        for (var function : globalScope.getSymbols()) {
+            idController.defineFunction(function.getName());
+        }
         this.output = output;
     }
 
@@ -614,6 +617,10 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
 
     private void appendBlock(ParserRuleContext ctx) throws IOException {
         enterBlock(ctx);
+        if (ctx.getChildCount() == 2
+                || ctx.getChildCount() == 3 && DECL_STATEMENTS_CLASSES.contains(ctx.getChild(1).getClass())) {
+            appendPass();
+        }
         visitChildren(ctx);
         exitBlock(ctx);
     }
@@ -632,8 +639,11 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
     private void exitBlock(ParserRuleContext ctx) throws IOException {
         currentScope = currentScope.getEnclosingScope();
         if (currentScope != null) {
-            output.append(getIndent()).append("del ")
-                    .append(String.join(", ", idController.getScopeDefinedVariables())).append("\n");
+            var scopedVariables = idController.getScopeDefinedVariables();
+            if (scopedVariables.length > 0) {
+                output.append(getIndent()).append("del ")
+                        .append(String.join(", ", idController.getScopeDefinedVariables())).append("\n");
+            }
             idController.exitScope();
         }
         depth -= 1;
@@ -664,17 +674,22 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
     }
 
     private void appendStatOrBlockOrPass(ParserRuleContext statOrBlock) throws IOException {
-        if (!BLOCK_CLASSES.contains(statOrBlock.getClass())) {
+        var statOrBlockNode = statOrBlock.getChild(0);
+        if (!BLOCK_CLASSES.contains(statOrBlockNode.getClass())) {
             depth += 1;
-            if (DECL_STATEMENTS_CLASSES.contains(statOrBlock.getClass())) {
-                output.append(getIndent()).append("pass\n");
+            if (DECL_STATEMENTS_CLASSES.contains(statOrBlockNode.getClass())) {
+                appendPass();
             } else {
-                visit(statOrBlock);
+                visit(statOrBlockNode);
             }
             depth -= 1;
             return;
         }
-        visit(statOrBlock);
+        visit(statOrBlockNode);
+    }
+
+    private void appendPass() throws IOException {
+        output.append(getIndent()).append("pass\n");
     }
 
     private String getIndent() {

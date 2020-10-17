@@ -343,7 +343,7 @@ public class TypeCheckingVisitor extends BaseOfpVisitor<OfpType> {
             OfpType argumentType = arguments[parametersCount - 1].getType();
 
 
-            checkExpression(argumentType, parameterType, ctx);
+            checkExpression(argumentType, parameterType, parameter);
         }
 
         if (arguments.length > parametersCount) {

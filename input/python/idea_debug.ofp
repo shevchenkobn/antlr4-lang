@@ -1,13 +1,29 @@
 void main() {
-    float f = sum(42.0);
-    print(sum(42.0));
-    println(f * notPython());
+    int i = sum(42);
+    if (i > 100) {}
+    if (i > 50)
+        println("lt fifty");
+    if (i > 25) {
+        print("larger than ");
+        println(25);
+    }
+    print(sum(42));
+    println(i * notPython());
 }
 
-float sum(float a) {
-    return a + a;
+int sum(int x) {
+    int i = 1;
+    int sum = 0;
+    while (i < x+1) {
+        sum = sum + i;
+        i = i + 1;
+    }
+    while (false) {}
+    while (false)
+        int ii = 4;
+    return sum + sum(x);
 }
 
-float notPython() {
-    return 1.1234345;
+int notPython() {
+    return 24;
 }

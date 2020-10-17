@@ -45,6 +45,10 @@ public class Scope<S extends Symbol> {
         return symbols.size();
     }
 
+    public Collection<S> getSymbols() {
+        return symbols.values();
+    }
+
     public void define(S sym) throws DuplicateSymbolException {
         if (symbols.containsKey(sym.getName())) {
             throw new DuplicateSymbolException(sym.getName());
