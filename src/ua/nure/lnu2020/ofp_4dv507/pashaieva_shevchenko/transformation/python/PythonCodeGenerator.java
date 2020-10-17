@@ -30,6 +30,15 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
             OfpPashaievaShevchenkoParser.VoidBlockContext.class,
             OfpPashaievaShevchenkoParser.FuncBlockContext.class,
     });
+    private static final List<Class> STAT_OR_BLOCK_SKIP_CLASSES = Arrays.asList(new Class[] {
+            OfpPashaievaShevchenkoParser.StatOrBlockContext.class,
+            OfpPashaievaShevchenkoParser.VoidStatOrBlockContext.class,
+    });
+    private static final List<Class> STAT_SKIP_CLASSES = Arrays.asList(new Class[] {
+            OfpPashaievaShevchenkoParser.ScStatContext.class,
+            OfpPashaievaShevchenkoParser.VoidScStatContext.class,
+            OfpPashaievaShevchenkoParser.VoidScStatValueContext.class,
+    });
 
     private final PythonIdController idController;
     private final Appendable output;
@@ -301,21 +310,21 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
                 output.append('(');
                 visitBoolExpr(ctx.boolExpr(0));
                 output.append(')');
-            } if (ctx.EQ() != null) {
+            } else if (ctx.EQ() != null) {
                 visit(ctx.getChild(0));
                 output.append(" == ");
                 visit(ctx.getChild(2));
-            } if (ctx.GT() != null) {
+            } else if (ctx.GT() != null) {
                 visit(ctx.getChild(0));
                 output.append(" > ");
                 visit(ctx.getChild(2));
-            } if (ctx.LT() != null) {
+            } else if (ctx.LT() != null) {
                 visit(ctx.getChild(0));
                 output.append(" < ");
                 visit(ctx.getChild(2));
-            } if (ctx.TRUE() != null) {
+            } else if (ctx.TRUE() != null) {
                 output.append("True");
-            } if (ctx.FALSE() != null) {
+            } else if (ctx.FALSE() != null) {
                 output.append("False");
             } else {
                 visit(ctx.getChild(0));
@@ -673,19 +682,26 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
         visit(expression);
     }
 
-    private void appendStatOrBlockOrPass(ParserRuleContext statOrBlock) throws IOException {
-        var statOrBlockNode = statOrBlock.getChild(0);
-        if (!BLOCK_CLASSES.contains(statOrBlockNode.getClass())) {
+    private void appendStatOrBlockOrPass(ParseTree statOrBlock) throws IOException {
+        while (STAT_OR_BLOCK_SKIP_CLASSES.contains(statOrBlock.getClass())) {
+            statOrBlock = statOrBlock.getChild(0);
+        }
+        if (!BLOCK_CLASSES.contains(statOrBlock.getClass())) {
             depth += 1;
-            if (DECL_STATEMENTS_CLASSES.contains(statOrBlockNode.getClass())) {
+            var statWrapper = statOrBlock.getChild(0);
+            var stat = statWrapper;
+            while (STAT_SKIP_CLASSES.contains(stat.getClass())) {
+                stat = stat.getChild(0);
+            }
+            if (DECL_STATEMENTS_CLASSES.contains(stat.getClass())) {
                 appendPass();
             } else {
-                visit(statOrBlockNode);
+                visit(statWrapper);
             }
             depth -= 1;
             return;
         }
-        visit(statOrBlockNode);
+        visit(statOrBlock);
     }
 
     private void appendPass() throws IOException {

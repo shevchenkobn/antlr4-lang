@@ -1,5 +1,32 @@
+# test duplicate identifiers (with or without python collisions
+# fibbonacci actually
+int id(int id) {
+    if (id == 0) {
+        return id;
+    }
+    if (id == 1) {
+        return id;
+    }
+    return id(id - 1) + id(id + 1);
+}
+int fib(int sum) {
+    if (sum == 0) {
+        return sum;
+    }
+    if (sum == 1) {
+        return sum;
+    }
+    return fib(sum - 1) + fib(sum + 1);
+}
+
 void main() {
-    int i = sum(42);
+    int i = 15;
+
+    # if body test
+    if (i > 200)
+        int iiii;
+    if (i > 200)
+        int iiiii = 43;
     if (i > 100) {}
     if (i > 50)
         println("lt fifty");
@@ -7,21 +34,34 @@ void main() {
         print("larger than ");
         println(25);
     }
-    print(sum(42));
-    println(i * notPython());
+
+    # while body test
+    while (i < -1) {}
+    while (i < -1)
+        int iiiiiiii;
+    while (i < -1)
+        int iiiiiiiii = 44564634523452346456345234523452356235542352345346352345;
+    while (i < -1)
+        println("unreachable");
+    while (i < -1) {
+        sum(534, ' ');
+    }
+
+    # print & function call test
+    print(sum(42, 'a'));
+    println(notPython());
+    println(id(24));
+    println(fib(24));
 }
 
-int sum(int x) {
+int sum(int x, char dummyParameter) {
     int i = 1;
     int sum = 0;
     while (i < x+1) {
         sum = sum + i;
         i = i + 1;
     }
-    while (false) {}
-    while (false)
-        int ii = 4;
-    return sum + sum(x);
+    return sum;
 }
 
 int notPython() {
