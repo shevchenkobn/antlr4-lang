@@ -3,12 +3,14 @@ package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.transformation.python;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.parsing.OfpPashaievaShevchenkoParser;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.OfpType;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.Scope;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.OfpSourceCodeException;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.FunctionSymbol;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.Symbol;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.VariableSymbol;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.visitors.BaseOfpVisitor;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.visitors.TypeCheckingVisitor;
 
 import java.io.IOException;
 import java.util.*;
@@ -41,19 +43,29 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
     });
 
     private final PythonIdController idController;
-    private final Appendable output;
+    private Appendable output;
     private int depth = 0;
     private final Map<Integer,String> indentCache = new HashMap<>();
+    private final TypeCheckingVisitor typeChecker;
     private OfpPashaievaShevchenkoParser.MainDefContext main;
     private FunctionSymbol functionSymbol;
     private Scope<VariableSymbol> currentScope;
 
-    public PythonCodeGenerator(Scope<FunctionSymbol> globalScope, Appendable output) {
+    public PythonCodeGenerator(Scope<FunctionSymbol> globalScope, Appendable output, TypeCheckingVisitor typeChecker) {
         super(globalScope);
+        this.typeChecker = typeChecker;
         idController = new PythonIdController(globalScope.size());
         for (var function : globalScope.getSymbols()) {
             idController.defineFunction(function.getName());
         }
+        this.output = output;
+    }
+
+    public Appendable getOutput() {
+        return output;
+    }
+
+    public void setOutput(Appendable output) {
         this.output = output;
     }
 
@@ -339,6 +351,7 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
     @Override
     public Void visitIntExpr(OfpPashaievaShevchenkoParser.IntExprContext ctx) {
         try {
+            // TODO: combine this method with float expr
             var hasUnaryMinus = ctx.MINUS() == ctx.getChild(0);
             if (hasUnaryMinus) {
                 output.append('-');
@@ -352,14 +365,17 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
                 output.append(" * ");
                 visitIntExpr(ctx.intExpr(1));
             } else if (ctx.DIV() != null) {
+                typeChecker.setCurrentFunction(functionSymbol);
+                typeChecker.setCurrentScope(currentScope);
+                var type = typeChecker.visitIntExpr(ctx.intExpr(0));
                 visitIntExpr(ctx.intExpr(0));
-                output.append(" // ");
+                output.append(type == OfpType.INT ? " // " : " / ");
                 visitIntExpr(ctx.intExpr(1));
             } else if (ctx.PLUS() != null) {
                 visitIntExpr(ctx.intExpr(0));
                 output.append(" + ");
                 visitIntExpr(ctx.intExpr(1));
-            } else if (ctx.MINUS() != null) {
+            } else if (!hasUnaryMinus && ctx.MINUS() != null) {
                 visitIntExpr(ctx.intExpr(0));
                 output.append(" - ");
                 visitIntExpr(ctx.intExpr(1));
@@ -381,6 +397,7 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
     @Override
     public Void visitFloatExpr(OfpPashaievaShevchenkoParser.FloatExprContext ctx) {
         try {
+            // TODO: combine this method with float expr
             var hasUnaryMinus = ctx.MINUS() == ctx.getChild(0);
             if (hasUnaryMinus) {
                 output.append('-');
@@ -401,7 +418,7 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
                 visitFloatExpr(ctx.floatExpr(0));
                 output.append(" + ");
                 visitFloatExpr(ctx.floatExpr(1));
-            } else if (ctx.MINUS() != null) {
+            } else if (!hasUnaryMinus && ctx.MINUS() != null) {
                 visitFloatExpr(ctx.floatExpr(0));
                 output.append(" - ");
                 visitFloatExpr(ctx.floatExpr(1));

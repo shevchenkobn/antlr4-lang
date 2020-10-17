@@ -57,7 +57,7 @@ public class PythonIdController {
             overriddenId = functionNames.getOrDefault(variableName, null);
             appendIndex = overriddenId != null;
         } else {
-            appendIndex = overriddenId.getIndex() > 1;
+            appendIndex = overriddenId.getIndex() >= 1;
         }
         var newId = new PythonId(variableName, overriddenId == null ? 1 : overriddenId.getIndex() + 1, appendIndex);
         currentScope.put(variableName, newId);

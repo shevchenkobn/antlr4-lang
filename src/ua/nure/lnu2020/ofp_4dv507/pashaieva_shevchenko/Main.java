@@ -74,7 +74,7 @@ public class Main {
                     System.out.println("\nGenerating Python code...");
                     PythonCodeGenerator pythonGenerator;
                     try (var output = new FileWriter(args[1])) {
-                        pythonGenerator = new PythonCodeGenerator(globalScope, output);
+                        pythonGenerator = new PythonCodeGenerator(globalScope, output, visitor);
                         pythonGenerator.visit(programTree);
                         output.flush();
                     }
