@@ -69,6 +69,14 @@ def ceilDiv(a, b):
     return -(-(a + (a - 1)) // b)
 
 
+def someBool():
+    c = 42
+    result = ceilDiv(42, 4) > 0
+    result = result == (43 < 3) == False == True == c == 3
+    f = 4.3
+    return result == f < (f + 3.2)
+
+
 i = 15
 if i > 200:
     pass
@@ -148,3 +156,4 @@ ofp_str = "hehehehe"
 print(len(ofp_str))
 print(-ceilDiv(4, 3) * -345 - -43 - 3)
 print(notCeilDiv(4.0, 3.0) * 3.45)
+print(someBool())

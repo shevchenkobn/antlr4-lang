@@ -128,6 +128,7 @@ void main() {
 
     println(-ceilDiv(4, 3) * -345 - -43 - 3);
     println(notCeilDiv(4.0, 3.0) * 3.45);
+    println(someBool());
 }
 
 int sum(int x, char dummyParameter) {
@@ -166,4 +167,12 @@ int ceilDiv(int a, int b) {
     int c;
     c = a / b;
     return -(-(a + (a - 1)) / b);
+}
+
+bool someBool() {
+    int c = 42;
+    bool result = ceilDiv(42, 4) > 0;
+    result = result == (43 < 3) == false == true == c == 3;
+    float f = 4.3;
+    return result == f < (f + 3.2);
 }
