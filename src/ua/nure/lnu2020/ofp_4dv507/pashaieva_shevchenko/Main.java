@@ -24,6 +24,8 @@ public class Main {
         // Or, for the file in the same working directory, simply: expr_input.txt
         if (args.length < 1) {
             System.err.println("Input file not provided!");
+            System.out.println("The app accepts up to 2 arguments: the first one is *.ofp file, the second one is optional, an output transpiled file.\n" +
+                    "If you provide an output file, make sure to provide an extension (e.g. output/python/test.py)");
             System.exit(1);
         }
         String sourceFileName = args[0];
