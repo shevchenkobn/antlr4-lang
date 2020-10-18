@@ -18,13 +18,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
+public class TypeCheckingVisitor extends BaseOfpVisitor<OfpType> {
 
     private static final ArrayList<OfpType> ComparableTypes = new ArrayList<>();
     private static final Map<OfpType, OfpType> ArrayTypeToElemTypeMap = new HashMap<>();
     private static final ArrayList<OfpType> PrintableTypes = new ArrayList<>();
 
     private FunctionSymbol currentFunction;
+
     private Scope<VariableSymbol> currentScope;
     private final Stack<OfpPashaievaShevchenkoParser.IntExprContext> intExprStack = new Stack<>();
 
@@ -49,6 +50,22 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
     public TypeCheckingVisitor(Scope<FunctionSymbol> globalScope)
     {
         super(globalScope);
+    }
+
+    public Scope<VariableSymbol> getCurrentScope() {
+        return currentScope;
+    }
+
+    public void setCurrentScope(Scope<VariableSymbol> currentScope) {
+        this.currentScope = currentScope;
+    }
+
+    public FunctionSymbol getCurrentFunction() {
+        return currentFunction;
+    }
+
+    public void setCurrentFunction(FunctionSymbol currentFunction) {
+        this.currentFunction = currentFunction;
     }
 
     @Override
@@ -343,7 +360,7 @@ public class TypeCheckingVisitor extends BaseOfpTypeVisitor {
             OfpType argumentType = arguments[parametersCount - 1].getType();
 
 
-            checkExpression(argumentType, parameterType, ctx);
+            checkExpression(argumentType, parameterType, parameter);
         }
 
         if (arguments.length > parametersCount) {

@@ -8,12 +8,11 @@ import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.Functio
 
 import java.util.ArrayList;
 
-public abstract class BaseOfpTypeVisitor extends OfpPashaievaShevchenkoBaseVisitor<OfpType> {
+public abstract class BaseOfpVisitor<T> extends OfpPashaievaShevchenkoBaseVisitor<T> {
+    protected final Scope<FunctionSymbol> globalScope;
+    protected final ArrayList<OfpSourceCodeException> errors = new ArrayList<>();
 
-    final Scope<FunctionSymbol> globalScope;
-    final ArrayList<OfpSourceCodeException> errors = new ArrayList<>();
-
-    protected BaseOfpTypeVisitor(Scope<FunctionSymbol> globalScope){
+    protected BaseOfpVisitor(Scope<FunctionSymbol> globalScope){
         this.globalScope = globalScope;
     }
 

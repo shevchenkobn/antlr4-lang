@@ -1,0 +1,178 @@
+# test duplicate identifiers (with or without python collisions
+# fibbonacci actually
+int id(int id) {
+    if (id == 0) {
+        return id;
+    }
+    if (id == 1) {
+        return id;
+    }
+    if (false) {
+        int id = 42;
+        while (false) {
+            char id = 'a';
+            println(id);
+        }
+    }
+    return id(id - 1) + id(id - 2);
+}
+int fib(int sum) {
+    if (sum == 0) {
+        return sum;
+    }
+    if (sum == 1) {
+        return sum;
+    }
+    if (false) {
+        float sum = 42.0;
+        while (false) {
+            char fib = 'a';
+            char sum = 'a';
+            int id = 0;
+            println(id);
+        }
+    }
+    return fib(sum - 1) + fib(sum - 2);
+}
+void noop(int i, string str, float fasdfasdfasdfasfdasdfdsf, int[] arr) {}
+
+void main() {
+    int i = 15;
+
+    # if body test
+    if (i > 200)
+        int iiii;
+    else if (i > 200)
+        int iiiii = 43;
+    if (i > 100) {}
+    else if (i > 50)
+        println("lt fifty");
+    if (i > 25) {
+        print("larger than ");
+        println(25);
+    }
+
+    # while body test
+    while (i < -1) {}
+    while (i < -1)
+        int iiiiiiii;
+    while (i < -1)
+        int iiiiiiiii = 44564634523452346456345234523452356235542352345346352345;
+    while (i < -1)
+        println("unreachable");
+    while (i < -1) {
+        sum(534, ' ');
+    }
+
+    # print & function call test
+    print(sum(42, 'a'));
+    println(notPython());
+    println(id(24));
+    println(fib(24));
+    noop(43, "kekeke", 4.3453345345, {});
+
+    # test variable shadowing
+    i = 0;
+    char c = 'a';
+    float f = 0.4;
+    while (i < 10) {
+        if (c == 'b') {
+            print(i);
+            print(c);
+            print(f);
+        }
+        if (i / 2 == i / 3) {
+            int i = 0;
+            char f = 'b';
+            float c = 3.5;
+            while (i > -10) {
+                if (f == 'c') {
+                    print(i);
+                    print(c);
+                    print(f);
+                } else {
+                    int f = 3;
+                    int c = 2;
+                    if (f == 4) {
+                         char i = 'd';
+                         string c = "asdf";
+                         if (i == 'e') {
+                            print(i);
+                            println(c);
+                         }
+                    } else {
+                        string f = "asdf";
+                        if (c == 4) {
+                            println(f);
+                        }
+                    }
+                }
+                i = i - 1;
+            }
+            if (f == 'c') {
+                 char i = 'd';
+                 string c = "asdf";
+                 if (i == 'e') {
+                    float i = 4.3;
+                    print(i);
+                    println(c);
+                 }
+            }
+        }
+        i = i + 1;
+    }
+
+    arrays();
+    string str = "hehehehe";
+    println(str.length);
+
+    println(-ceilDiv(4, 3) * -345 - -43 - 3);
+    println(notCeilDiv(4.0, 3.0) * 3.45);
+    println(someBool());
+}
+
+int sum(int x, char dummyParameter) {
+    int i = 1;
+    int sum = 0;
+    while (i < x+1) {
+        sum = sum + i;
+        i = i + 1;
+    }
+    return sum;
+}
+
+int notPython() {
+    return 24;
+}
+
+char[] arrays() {
+    int[] ia = new int[42];
+    char[] ca = {'a', 'b', 'c'};
+    float[] fa = {0.0, 2.2, 42.0};
+    fa = new float[ia[0]];
+    ca = new char[4];
+    ia = {ca.length, fa.length, ia[3], 4 + 8, -16};
+    ia[3] = 3453;
+    ca[1] = 'D';
+    return ca;
+}
+
+float notCeilDiv(float a, float b) {
+    float c;
+    c = a / b;
+    return (-a + -(a / b * a)) / b + b - a;
+}
+
+int ceilDiv(int a, int b) {
+    int c;
+    c = a / b;
+    return -(-(a + (a - 1)) / b);
+}
+
+bool someBool() {
+    int c = 42;
+    bool result = ceilDiv(42, 4) > 0;
+    result = result == (43 < 3) == false == true == c == 3;
+    float f = 4.3;
+    return result == f < (f + 3.2);
+}
