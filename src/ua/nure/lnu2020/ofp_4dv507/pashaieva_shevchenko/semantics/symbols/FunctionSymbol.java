@@ -6,15 +6,14 @@ import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.Scope;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.DuplicateSymbolException;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.SymbolException;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.IdentityHashMap;
-import java.util.LinkedHashMap;
+import java.util.*;
 
 public class FunctionSymbol extends Symbol {
     private ArrayList<DuplicateSymbolException> parameterExceptions;
     protected final ParameterSymbol[] arguments;
     protected final Scope<VariableSymbol> variableScope;
+    private int varCount = 0;
+    private Map<Symbol,Integer> indices = new LinkedHashMap<>();
 
     public ParameterSymbol[] getArguments() {
         return arguments;
@@ -54,6 +53,7 @@ public class FunctionSymbol extends Symbol {
                 variableScope.define(argument);
                 argument.setFunction(this);
                 list.add(argument);
+                addVariable(argument);
             } catch (DuplicateSymbolException exception) {
                 if (parameterExceptions == null) {
                     parameterExceptions = new ArrayList<>();
@@ -65,6 +65,18 @@ public class FunctionSymbol extends Symbol {
             }
         }
         this.arguments = list.toArray(ParameterSymbol[]::new);
+    }
+
+    public void addVariable(Symbol symbol){
+        indices.put(symbol, varCount);
+        if (symbol.getType() == OfpType.FLOAT)
+            varCount += 2;
+        else
+            varCount++;
+    }
+
+    public int indexOf(Symbol sym) {
+        return indices.get(sym);
     }
 
     @Override

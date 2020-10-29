@@ -2,7 +2,7 @@ void main() {
     int a = 2;
     int c = 2;
     a = -6;
-    float b = 4.0 / 2.1;
+    float b = t(4.3);
     println(b);
 
     string str = "abcds";
@@ -26,4 +26,10 @@ void main() {
         println(a);
         a = a + 1;
      }
+}
+
+float t(float val) {
+    println("Hello world");
+    float a = val - 2.0;
+    return a;
 }

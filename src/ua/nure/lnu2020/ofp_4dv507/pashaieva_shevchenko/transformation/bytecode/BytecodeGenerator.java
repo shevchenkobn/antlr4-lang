@@ -15,7 +15,9 @@ import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.Variabl
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.visitors.BaseOfpVisitor;
 
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -24,9 +26,8 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
 
     private ClassWriter classWriter;
     private GeneratorAdapter generatorAdapter;
-    private Map<String, Integer> variableIndexByName = new HashMap<>();
     private static final Map<OfpType, Type> OfpTypeToASMType = new HashMap<>();
-    private int lastIndex = 1;
+    private static final Map<String, String> OfpTypeToJavaType = new HashMap<>();
     private FunctionSymbol functionSymbol;
     private Scope<VariableSymbol> currentScope;
 
@@ -42,8 +43,17 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
         OfpTypeToASMType.put(OfpType.BOOL, Type.BOOLEAN_TYPE);
         OfpTypeToASMType.put(OfpType.STRING, Type.getType(String.class));
         OfpTypeToASMType.put(OfpType.INT_ARR, Type.getType(int[].class));
-        OfpTypeToASMType.put(OfpType.FLOAT_ARR, Type.getType(float[].class));
+        OfpTypeToASMType.put(OfpType.FLOAT_ARR, Type.getType(double[].class));
         OfpTypeToASMType.put(OfpType.CHAR_ARR, Type.getType(char[].class));
+
+        OfpTypeToJavaType.put("int", "int");
+        OfpTypeToJavaType.put("float", "double");
+        OfpTypeToJavaType.put("char", "char");
+        OfpTypeToJavaType.put("bool", "boolean");
+        OfpTypeToJavaType.put("string", "String");
+        OfpTypeToJavaType.put("int[]", "int[]");
+        OfpTypeToJavaType.put("float[]", "double[]");
+        OfpTypeToJavaType.put("char[]", "char[]");
     }
 
     public ClassWriter getClassWriter() {
@@ -53,7 +63,6 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
     @Override
     public Type visitProgramDef(OfpPashaievaShevchenkoParser.ProgramDefContext ctx) {
         classWriter.visit(V1_1, ACC_PUBLIC, "Program", null, "java/lang/Object", null);
-        // Creates a GeneratorAdapter for the (implicit) constructor
         Method m = Method.getMethod("void <init> ()");
         GeneratorAdapter mg = new GeneratorAdapter(ACC_PUBLIC, m, null, null, classWriter);
         mg.loadThis();
@@ -69,13 +78,40 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
 
     @Override
     public Type visitMainDef(OfpPashaievaShevchenkoParser.MainDefContext ctx) {
-        Method plus = Method.getMethod("void main (String[])");
-        generatorAdapter = new GeneratorAdapter(ACC_PUBLIC + ACC_STATIC, plus, null, null, classWriter);
-        functionSymbol = globalScope.resolve("main");
+        enterMethod("main", "void", ACC_PUBLIC + ACC_STATIC, null);
         super.visitMainDef(ctx);
+        exitMethod();
+        return null;
+    }
 
-        generatorAdapter.returnValue();
-        generatorAdapter.endMethod();
+    @Override
+    public Type visitFuncDef(OfpPashaievaShevchenkoParser.FuncDefContext ctx) {
+        enterMethod(ctx.ID().getText(),
+                OfpTypeToJavaType.get(ctx.datatype().getText()),
+                ACC_PRIVATE + ACC_STATIC,
+                ctx.funcArgs().varDef());
+        super.visitFuncDef(ctx);
+        exitMethod();
+        return null;
+    }
+
+    @Override
+    public Type visitVoidFuncDef(OfpPashaievaShevchenkoParser.VoidFuncDefContext ctx) {
+        enterMethod(ctx.ID().getText(),
+                "void",
+                ACC_PRIVATE + ACC_STATIC,
+                ctx.funcArgs().varDef());
+        super.visitVoidFuncDef(ctx);
+        exitMethod();
+        return null;
+    }
+
+    @Override
+    public Type visitFuncBlock(OfpPashaievaShevchenkoParser.FuncBlockContext ctx) {
+        enterBlock(ctx);
+        super.visitFuncBlock(ctx);
+        exitBlock(ctx);
+
         return null;
     }
 
@@ -83,6 +119,15 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
     public Type visitVoidBlock(OfpPashaievaShevchenkoParser.VoidBlockContext ctx) {
         enterBlock(ctx);
         super.visitVoidBlock(ctx);
+        exitBlock(ctx);
+
+        return null;
+    }
+
+    @Override
+    public Type visitBlock(OfpPashaievaShevchenkoParser.BlockContext ctx) {
+        enterBlock(ctx);
+        super.visitBlock(ctx);
         exitBlock(ctx);
 
         return null;
@@ -109,11 +154,30 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
     }
 
     @Override
-    public Type visitBlock(OfpPashaievaShevchenkoParser.BlockContext ctx) {
-        enterBlock(ctx);
-        super.visitBlock(ctx);
-        exitBlock(ctx);
+    public Type visitFuncCall(OfpPashaievaShevchenkoParser.FuncCallContext ctx) {
+        String functionName = ctx.ID().getText();
+        var function = globalScope.resolve(functionName);
+        String returnType = "void";
+        if (function.getType() != null)
+            returnType = OfpTypeToJavaType.get(function.getType().getName());
 
+        String methodSignature = returnType + " " + functionName + "(" + getParameters(function) + ")";
+
+        for (OfpPashaievaShevchenkoParser.ExprContext expr: ctx.expr() ) {
+            visit(expr);
+        }
+
+        generatorAdapter.invokeStatic(Type.getType("LProgram;"), Method.getMethod(methodSignature));
+
+        if (function.getType() == null)
+            return Type.VOID_TYPE;
+
+        return OfpTypeToASMType.get(function.getType());
+    }
+
+    @Override
+    public Type visitReturnExpr(OfpPashaievaShevchenkoParser.ReturnExprContext ctx) {
+        visit(ctx.expr());
         return null;
     }
 
@@ -195,8 +259,9 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
 
     @Override
     public Type visitAssign(OfpPashaievaShevchenkoParser.AssignContext ctx) {
-        var rightValueType = visit(ctx.expr());
-        generatorAdapter.storeLocal(variableIndexByName.get(ctx.ID().getText()), rightValueType);
+        Type rightValueType = visit(ctx.expr());
+        VariableSymbol variable = currentScope.resolve(ctx.ID().getText());
+        generatorAdapter.storeLocal(functionSymbol.indexOf(variable), rightValueType);
 
         return null;
     }
@@ -298,7 +363,7 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
             return calculate(ctx, GeneratorAdapter.MUL);
 
         if (ctx.DIV() != null)
-            return calculate(ctx, GeneratorAdapter.DIV); //check
+            return calculate(ctx, GeneratorAdapter.DIV);
 
         return super.visitIntExpr(ctx);
     }
@@ -315,7 +380,7 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
             return calculate(ctx, GeneratorAdapter.MUL);
 
         if (ctx.DIV() != null)
-            return calculate(ctx, GeneratorAdapter.DIV); //check
+            return calculate(ctx, GeneratorAdapter.DIV);
 
         return super.visitFloatExpr(ctx);
     }
@@ -365,10 +430,13 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
     @Override
     public Type visitVariable(OfpPashaievaShevchenkoParser.VariableContext ctx) {
         String variableName = ctx.ID().getText();
-        Integer variableIndex = variableIndexByName.get(variableName);
-
-        generatorAdapter.loadLocal(variableIndex);
         VariableSymbol resolveVariable = currentScope.resolve(variableName);
+        int variableIndex = functionSymbol.indexOf(resolveVariable);
+
+        if (resolveVariable instanceof FunctionSymbol.ParameterSymbol)
+            generatorAdapter.loadArg(variableIndex);
+        else
+            generatorAdapter.loadLocal(variableIndex);
 
         return OfpTypeToASMType.get(resolveVariable.getType());
     }
@@ -383,6 +451,20 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
     public Type visitFloatLiteral(OfpPashaievaShevchenkoParser.FloatLiteralContext ctx) {
         generatorAdapter.push(Double.parseDouble(ctx.getText()));
         return Type.DOUBLE_TYPE;
+    }
+
+    private void enterMethod(String methodName, String returnType, int type, List<OfpPashaievaShevchenkoParser.VarDefContext> args)
+    {
+        functionSymbol = globalScope.resolve(methodName);
+        String methodSignature = returnType + " " + methodName + " (" + getParameters(functionSymbol) + ")";
+        Method method = Method.getMethod(methodSignature);
+
+        generatorAdapter = new GeneratorAdapter(type, method, null, null, classWriter);
+    }
+
+    private void exitMethod() {
+        generatorAdapter.returnValue();
+        generatorAdapter.endMethod();
     }
 
     private void enterBlock(ParserRuleContext ctx){
@@ -459,14 +541,14 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
         String variableName = ctx.getChild(0).getChild(1).getText();
 
         ParseTree expression = ctx.getChild(2);
+        VariableSymbol variable = currentScope.resolve(variableName);
+        int index = functionSymbol.indexOf(variable);
         if (expression != null){
             Type valueType = visit(expression);
-            generatorAdapter.storeLocal(lastIndex, valueType);
+            generatorAdapter.storeLocal(index, valueType);
         }
         else
-            generatorAdapter.storeLocal(lastIndex);
-
-        variableIndexByName.put(variableName, lastIndex++);
+            generatorAdapter.storeLocal(index);
 
         return null;
     }
@@ -500,5 +582,12 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
                 Method.getMethod("void " + printFunction + " ("+ type + ")"));
 
         return null;
+    }
+
+    private String getParameters(FunctionSymbol function) {
+        return String.join(", ", Arrays
+                .stream(function.getArguments())
+                .map(x->OfpTypeToJavaType.get(x.getType().getName()))
+                .toArray(String[]::new));
     }
 }
