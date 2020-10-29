@@ -1,0 +1,29 @@
+void main() {
+    int a = 2;
+    int c = 2;
+    a = -6;
+    float b = 4.0 / 2.1;
+    println(b);
+
+    string str = "abcds";
+    println(str.length);
+
+    int l = "abbsaj".length;
+    println(l);
+
+    char ch = 'a';
+    char cd = ch;
+    println(cd);
+
+    println(a < c);
+
+    char[] arr = {'s', 'd'};
+    arr[1] = 'w';
+    println(arr[1]);
+
+    while (a < 1){
+        println("Hello");
+        println(a);
+        a = a + 1;
+     }
+}
