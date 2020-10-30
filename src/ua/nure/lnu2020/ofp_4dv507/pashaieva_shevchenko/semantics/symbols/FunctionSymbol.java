@@ -13,6 +13,7 @@ public class FunctionSymbol extends Symbol {
     protected final ParameterSymbol[] arguments;
     protected final Scope<VariableSymbol> variableScope;
     private int varCount = 0;
+    private int floatParameterCount = 0;
     private Map<Symbol,Integer> indices = new LinkedHashMap<>();
 
     public ParameterSymbol[] getArguments() {
@@ -68,11 +69,21 @@ public class FunctionSymbol extends Symbol {
     }
 
     public void addVariable(Symbol symbol){
+        if (arguments != null && indices.size() == arguments.length)
+            varCount += floatParameterCount;
+
         indices.put(symbol, varCount);
-        if (symbol.getType() == OfpType.FLOAT)
-            varCount += 2;
-        else
+        varCount++;
+
+        if (symbol.getType() != OfpType.FLOAT)
+            return;
+
+        if (!(symbol instanceof ParameterSymbol)) {
             varCount++;
+            return;
+        }
+
+        floatParameterCount++;
     }
 
     public int indexOf(Symbol sym) {
