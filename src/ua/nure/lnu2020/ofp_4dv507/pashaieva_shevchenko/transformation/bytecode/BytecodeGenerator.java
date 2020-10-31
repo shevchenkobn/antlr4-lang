@@ -443,7 +443,18 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
 
     @Override
     public Type visitIntLiteral(OfpPashaievaShevchenkoParser.IntLiteralContext ctx) {
-        generatorAdapter.push(Integer.parseInt(ctx.getText()));
+        var text = ctx.getText();
+        int value;
+        try {
+            value = Integer.parseInt(text);
+        } catch (NumberFormatException exception) {
+            if (text.charAt(0) == '-') {
+                value = Integer.MIN_VALUE;
+            } else {
+                value = Integer.MAX_VALUE;
+            }
+        }
+        generatorAdapter.push(value);
         return Type.INT_TYPE;
     }
 
@@ -547,8 +558,8 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
             Type valueType = visit(expression);
             generatorAdapter.storeLocal(index, valueType);
         }
-        else
-            generatorAdapter.storeLocal(index);
+//        else
+//            generatorAdapter.storeLocal(index);
 
         return null;
     }
