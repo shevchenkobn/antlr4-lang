@@ -2,6 +2,7 @@ package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.transformation.bytecode;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
@@ -353,40 +354,52 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
 
     @Override
     public Type visitIntExpr(OfpPashaievaShevchenkoParser.IntExprContext ctx) {
-        if (ctx.PLUS() != null)
-            return calculate(ctx, GeneratorAdapter.ADD);
+        if (ctx.children.size() == 3){
+            Type resultType = calculate(ctx, ctx.PLUS(), ctx.MINUS(), ctx.MULT(), ctx.DIV());
+            if (resultType != null)
+                return resultType;
+        }
+
+        Type resultType = ctx.LRB() != null
+                ? visit(ctx.intExpr(0))
+                : super.visitIntExpr(ctx);
 
         if (ctx.MINUS() != null)
-            return calculate(ctx, GeneratorAdapter.SUB);
+        {
+            if (resultType == Type.DOUBLE_TYPE)
+                generatorAdapter.push(-1.0);
+            else
+                generatorAdapter.push(-1);
+            generatorAdapter.math(GeneratorAdapter.MUL, resultType);
+        }
 
-        if (ctx.MULT() != null)
-            return calculate(ctx, GeneratorAdapter.MUL);
-
-        if (ctx.DIV() != null)
-            return calculate(ctx, GeneratorAdapter.DIV);
-
-        return super.visitIntExpr(ctx);
+        return resultType;
     }
 
     @Override
     public Type visitFloatExpr(OfpPashaievaShevchenkoParser.FloatExprContext ctx) {
-        if (ctx.PLUS() != null)
-            return calculate(ctx, GeneratorAdapter.ADD);
+        if (ctx.children.size() == 3){
+            Type resultType = calculate(ctx, ctx.PLUS(), ctx.MINUS(), ctx.MULT(), ctx.DIV());
+            if (resultType != null)
+                return resultType;
+        }
 
-        if (ctx.MINUS() != null)
-            return calculate(ctx, GeneratorAdapter.SUB);
+        Type resultType = ctx.LRB() != null
+                ? visit(ctx.floatExpr(0))
+                : super.visitFloatExpr(ctx);
 
-        if (ctx.MULT() != null)
-            return calculate(ctx, GeneratorAdapter.MUL);
+        if (ctx.MINUS() != null) {
+            generatorAdapter.push(-1.0);
+            generatorAdapter.math(GeneratorAdapter.MUL, resultType);
+        }
 
-        if (ctx.DIV() != null)
-            return calculate(ctx, GeneratorAdapter.DIV);
-
-        return super.visitFloatExpr(ctx);
+        return resultType;
     }
 
     @Override
     public Type visitBoolExpr(OfpPashaievaShevchenkoParser.BoolExprContext ctx) {
+        if (ctx.LRB() != null)
+            return visit(ctx.boolExpr(0));
         if (ctx.GT() != null)
             return calculateCondition(ctx, GeneratorAdapter.GT);
         if (ctx.LT() != null)
@@ -519,6 +532,26 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
         visit(ctx.getChild(2));
         generatorAdapter.push(true);
         generatorAdapter.ifCmp(Type.BOOLEAN_TYPE, GeneratorAdapter.EQ, whileBodyLabel);
+
+        return null;
+    }
+
+    private Type calculate(ParserRuleContext ctx,
+                           TerminalNode plus,
+                           TerminalNode minus,
+                           TerminalNode mult,
+                           TerminalNode divide){
+        if (plus != null)
+            return calculate(ctx, GeneratorAdapter.ADD);
+
+        if (minus != null)
+            return calculate(ctx, GeneratorAdapter.SUB);
+
+        if (mult != null)
+            return calculate(ctx, GeneratorAdapter.MUL);
+
+        if (divide != null)
+            return calculate(ctx, GeneratorAdapter.DIV);
 
         return null;
     }

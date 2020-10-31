@@ -49,7 +49,7 @@ void testArithmetic() {
     p = 2;
     q = p+2;
     r = p+q*3;
-    println(r);  # 14
+    println(-(r+1));  # -15
     print(-1 + 3 * (14 - 4));
     println(' ');
 
