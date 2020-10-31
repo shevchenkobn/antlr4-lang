@@ -1,4 +1,4 @@
-package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.parsing;
+package ua.nure.lnu2020.ofp_4dv507.exam.lisp.parsing;
 
 import org.antlr.v4.runtime.ConsoleErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
