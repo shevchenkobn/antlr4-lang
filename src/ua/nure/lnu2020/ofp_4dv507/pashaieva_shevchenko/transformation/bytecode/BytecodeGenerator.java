@@ -29,11 +29,13 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
     private GeneratorAdapter generatorAdapter;
     private static final Map<OfpType, Type> OfpTypeToASMType = new HashMap<>();
     private static final Map<String, String> OfpTypeToJavaType = new HashMap<>();
+    private final String className;
     private FunctionSymbol functionSymbol;
     private Scope<VariableSymbol> currentScope;
 
-    public BytecodeGenerator(Scope<FunctionSymbol> globalScope) {
+    public BytecodeGenerator(Scope<FunctionSymbol> globalScope, String className) {
         super(globalScope);
+        this.className = className;
         classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
     }
 
@@ -63,7 +65,7 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
 
     @Override
     public Type visitProgramDef(OfpPashaievaShevchenkoParser.ProgramDefContext ctx) {
-        classWriter.visit(V1_1, ACC_PUBLIC, "Program", null, "java/lang/Object", null);
+        classWriter.visit(V1_1, ACC_PUBLIC, className, null, "java/lang/Object", null);
         Method m = Method.getMethod("void <init> ()");
         GeneratorAdapter mg = new GeneratorAdapter(ACC_PUBLIC, m, null, null, classWriter);
         mg.loadThis();
@@ -79,7 +81,8 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
 
     @Override
     public Type visitMainDef(OfpPashaievaShevchenkoParser.MainDefContext ctx) {
-        enterMethod("main", "void", ACC_PUBLIC + ACC_STATIC, null);
+        enterMethod("main", "void", ACC_PUBLIC + ACC_STATIC, (List<OfpPashaievaShevchenkoParser.VarDefContext>)null);
+//        enterMethod("main", "void", ACC_PUBLIC + ACC_STATIC, "String[]"); // TODO: variable index must be changed for this to work
         super.visitMainDef(ctx);
         exitMethod();
         return null;
@@ -475,7 +478,12 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
     private void enterMethod(String methodName, String returnType, int type, List<OfpPashaievaShevchenkoParser.VarDefContext> args)
     {
         functionSymbol = globalScope.resolve(methodName);
-        String methodSignature = returnType + " " + methodName + " (" + getParameters(functionSymbol) + ")";
+        enterMethod(methodName, returnType, type, getParameters(functionSymbol));
+    }
+
+    private void enterMethod(String methodName, String returnType, int type, String args) {
+        functionSymbol = globalScope.resolve(methodName);
+        String methodSignature = returnType + " " + methodName + " (" + args + ")";
         Method method = Method.getMethod(methodSignature);
 
         generatorAdapter = new GeneratorAdapter(type, method, null, null, classWriter);

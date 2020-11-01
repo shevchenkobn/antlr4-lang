@@ -19,10 +19,7 @@ import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.transformation.bytecode.B
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.transformation.bytecode.BytecodeGenerator;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.transformation.python.PythonCodeGenerator;
 
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.ArrayList;
 
 public class Main {
@@ -94,8 +91,10 @@ public class Main {
                 if (args[1].endsWith("class")){
                     System.out.println("\nGenerating Java bytecode...");
                     BytecodeGenerator bytecodeGenerator;
-                    try (var output = new FileOutputStream(args[1])) {
-                        bytecodeGenerator = new BytecodeGenerator(globalScope);
+                    var file = new File(args[1]);
+                    try (var output = new FileOutputStream(file)) {
+                        var className = file.getName().replaceFirst("\\.[^.]+$", "");
+                        bytecodeGenerator = new BytecodeGenerator(globalScope, className);
                         bytecodeGenerator.visit(programTree);
                         var cw = bytecodeGenerator.getClassWriter();
                         var code = cw.toByteArray();
@@ -106,7 +105,7 @@ public class Main {
                         cr.accept(checker,0);
 
                         var cl = new ByteCodeLoader();
-                        cl.load(code);
+                        cl.load(code, className);
                         output.write(cw.toByteArray());
                         output.flush();
                     }
