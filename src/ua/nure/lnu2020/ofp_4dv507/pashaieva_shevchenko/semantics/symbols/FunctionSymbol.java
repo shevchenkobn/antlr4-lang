@@ -92,7 +92,6 @@ public class FunctionSymbol extends Symbol {
 
     public int indexOf(VariableSymbol sym) {
         return indices.get(sym);
-//        return sym instanceof ParameterSymbol ? paramIndices.get(sym) : indices.get(sym);
     }
 
     @Override

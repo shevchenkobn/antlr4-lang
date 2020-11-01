@@ -32,6 +32,7 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
     private final String className;
     private FunctionSymbol functionSymbol;
     private Scope<VariableSymbol> currentScope;
+    private boolean isMain = false;
 
     public BytecodeGenerator(Scope<FunctionSymbol> globalScope, String className) {
         super(globalScope);
@@ -81,10 +82,11 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
 
     @Override
     public Type visitMainDef(OfpPashaievaShevchenkoParser.MainDefContext ctx) {
-        enterMethod("main", "void", ACC_PUBLIC + ACC_STATIC, (List<OfpPashaievaShevchenkoParser.VarDefContext>)null);
-//        enterMethod("main", "void", ACC_PUBLIC + ACC_STATIC, "String[]"); // TODO: variable index must be changed for this to work
+        isMain = true;
+        enterMethod("main", "void", ACC_PUBLIC + ACC_STATIC, null);
         super.visitMainDef(ctx);
         exitMethod();
+        isMain = false;
         return null;
     }
 
@@ -266,7 +268,7 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
     public Type visitAssign(OfpPashaievaShevchenkoParser.AssignContext ctx) {
         Type rightValueType = visit(ctx.expr());
         VariableSymbol variable = currentScope.resolve(ctx.ID().getText());
-        generatorAdapter.storeLocal(functionSymbol.indexOf(variable), rightValueType);
+        generatorAdapter.storeLocal(indexOfVariable(variable), rightValueType);
 
         return null;
     }
@@ -443,7 +445,7 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
     public Type visitVariable(OfpPashaievaShevchenkoParser.VariableContext ctx) {
         String variableName = ctx.ID().getText();
         VariableSymbol resolveVariable = currentScope.resolve(variableName);
-        int variableIndex = functionSymbol.indexOf(resolveVariable);
+        int variableIndex = indexOfVariable(resolveVariable);
 
         if (resolveVariable instanceof FunctionSymbol.ParameterSymbol)
             generatorAdapter.loadArg(variableIndex);
@@ -479,12 +481,8 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
     private void enterMethod(String methodName, String returnType, int type, List<OfpPashaievaShevchenkoParser.VarDefContext> args)
     {
         functionSymbol = globalScope.resolve(methodName);
-        enterMethod(methodName, returnType, type, getParameters(functionSymbol));
-    }
-
-    private void enterMethod(String methodName, String returnType, int type, String args) {
-        functionSymbol = globalScope.resolve(methodName);
-        String methodSignature = returnType + " " + methodName + " (" + args + ")";
+        var argsTypes = isMain ? "String[]" : getParameters(functionSymbol);
+        String methodSignature = returnType + " " + methodName + " (" + argsTypes + ")";
         Method method = Method.getMethod(methodSignature);
 
         generatorAdapter = new GeneratorAdapter(type, method, null, null, classWriter);
@@ -616,13 +614,11 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
 
         ParseTree expression = ctx.getChild(2);
         VariableSymbol variable = currentScope.resolve(variableName);
-        int index = functionSymbol.indexOf(variable);
+        int index = indexOfVariable(variable);
         if (expression != null){
             Type valueType = visit(expression);
             generatorAdapter.storeLocal(index, valueType);
         }
-//        else
-//            generatorAdapter.storeLocal(index);
 
         return null;
     }
@@ -656,6 +652,11 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
                 Method.getMethod("void " + printFunction + " ("+ type + ")"));
 
         return null;
+    }
+
+    private int indexOfVariable(VariableSymbol variable) {
+        var index = functionSymbol.indexOf(variable);
+        return isMain ? index + 1 : index;
     }
 
     private String getParameters(FunctionSymbol function) {
