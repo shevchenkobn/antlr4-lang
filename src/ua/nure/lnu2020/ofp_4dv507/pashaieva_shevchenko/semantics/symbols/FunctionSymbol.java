@@ -14,7 +14,8 @@ public class FunctionSymbol extends Symbol {
     protected final Scope<VariableSymbol> variableScope;
     private int varCount = 0;
     private int floatParameterCount = 0;
-    private Map<Symbol,Integer> indices = new LinkedHashMap<>();
+    private final Map<VariableSymbol, Integer> indices = new LinkedHashMap<>();
+    private final Map<ParameterSymbol, Integer> paramIndices = new LinkedHashMap<>();
 
     public ParameterSymbol[] getArguments() {
         return arguments;
@@ -48,6 +49,7 @@ public class FunctionSymbol extends Symbol {
         super(type, name);
         variableScope = new Scope<>(enclosingVariableScope, null, VariableSymbol::new);
         var list = new ArrayList<ParameterSymbol>(argumentsMap.size());
+        var i = 0;
         for (var entry : argumentsMap.entrySet()) {
             var argument = entry.getValue();
             try {
@@ -55,6 +57,8 @@ public class FunctionSymbol extends Symbol {
                 argument.setFunction(this);
                 list.add(argument);
                 addVariable(argument);
+                paramIndices.put(argument, i);
+                i += 1;
             } catch (DuplicateSymbolException exception) {
                 if (parameterExceptions == null) {
                     parameterExceptions = new ArrayList<>();
@@ -68,7 +72,7 @@ public class FunctionSymbol extends Symbol {
         this.arguments = list.toArray(ParameterSymbol[]::new);
     }
 
-    public void addVariable(Symbol symbol){
+    public void addVariable(VariableSymbol symbol){
         if (arguments != null && indices.size() == arguments.length)
             varCount += floatParameterCount;
 
@@ -86,8 +90,9 @@ public class FunctionSymbol extends Symbol {
         floatParameterCount++;
     }
 
-    public int indexOf(Symbol sym) {
+    public int indexOf(VariableSymbol sym) {
         return indices.get(sym);
+//        return sym instanceof ParameterSymbol ? paramIndices.get(sym) : indices.get(sym);
     }
 
     @Override

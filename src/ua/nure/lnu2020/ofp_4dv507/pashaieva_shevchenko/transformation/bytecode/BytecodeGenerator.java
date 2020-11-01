@@ -366,11 +366,7 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
 
         if (ctx.MINUS() != null)
         {
-            if (resultType == Type.DOUBLE_TYPE)
-                generatorAdapter.push(-1.0);
-            else
-                generatorAdapter.push(-1);
-            generatorAdapter.math(GeneratorAdapter.MUL, resultType);
+            generatorAdapter.math(GeneratorAdapter.NEG, resultType);
         }
 
         return resultType;
@@ -389,8 +385,7 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
                 : super.visitFloatExpr(ctx);
 
         if (ctx.MINUS() != null) {
-            generatorAdapter.push(-1.0);
-            generatorAdapter.math(GeneratorAdapter.MUL, resultType);
+            generatorAdapter.math(GeneratorAdapter.NEG, resultType);
         }
 
         return resultType;
