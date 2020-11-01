@@ -3,6 +3,10 @@ package ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.util.CheckClassAdapter;
+import org.objectweb.asm.util.TraceClassVisitor;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.OfpSourceCodeException;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.listeners.BaseOfpListener;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.parsing.*;
@@ -11,15 +15,16 @@ import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.Scope;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.listeners.SymbolTableConstructionListener;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.FunctionSymbol;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.visitors.TypeCheckingVisitor;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.transformation.bytecode.ByteCodeLoader;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.transformation.bytecode.BytecodeGenerator;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.transformation.python.PythonCodeGenerator;
 
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) {
+
         // Read test program path from args
         // Or, for the file in the same working directory, simply: expr_input.txt
         if (args.length < 1) {
@@ -82,7 +87,32 @@ public class Main {
                     }
 
                     foundErrors = processErrors(pythonGenerator.getErrors(), "\n\nUnexpected errors during Python code generation:");
-                } else {
+                }
+                if (args[1].endsWith("class")){
+                    System.out.println("\nGenerating Java bytecode...");
+                    BytecodeGenerator bytecodeGenerator;
+                    var file = new File(args[1]);
+                    try (var output = new FileOutputStream(file)) {
+                        var className = file.getName().replaceFirst("\\.[^.]+$", "");
+                        bytecodeGenerator = new BytecodeGenerator(globalScope, className);
+                        bytecodeGenerator.visit(programTree);
+                        var cw = bytecodeGenerator.getClassWriter();
+                        var code = cw.toByteArray();
+                        // Diagnostics
+                        ClassReader cr = new ClassReader(code);
+                        ClassVisitor tracer = new TraceClassVisitor(new PrintWriter(System.out));
+                        ClassVisitor checker = new CheckClassAdapter(tracer, true);
+                        cr.accept(checker,0);
+
+                        var cl = new ByteCodeLoader();
+                        cl.load(code, className);
+                        output.write(cw.toByteArray());
+                        output.flush();
+                    }
+
+                    foundErrors = processErrors(bytecodeGenerator.getErrors(), "\n\nUnexpected errors during Java bytecode generation:");
+                }
+                else {
                     System.err.printf("Couldn't infer target language by file extension in '%s'\n", args[1]);
                     System.exit(1);
                 }

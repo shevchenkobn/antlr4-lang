@@ -149,6 +149,7 @@ public class SymbolTableConstructionListener extends BaseOfpListener {
             var variable = new VariableSymbol(OfpType.getByName(type.getText()), name.getText());
             try {
                 scope.define(variable);
+                functions.get(functionNode).addVariable(variable);
             } catch (DuplicateSymbolException exception) {
                 var token = name.getSymbol();
                 exception.setSourceCodeLine(token.getLine());
@@ -201,7 +202,6 @@ public class SymbolTableConstructionListener extends BaseOfpListener {
 
         this.functionType = null;
         this.functionName = null;
-        this.functionNode = null;
         this.functionArgumentsMap = null;
     }
 

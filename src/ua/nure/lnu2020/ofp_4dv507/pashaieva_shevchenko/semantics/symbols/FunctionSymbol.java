@@ -6,15 +6,16 @@ import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.Scope;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.DuplicateSymbolException;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.SymbolException;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.IdentityHashMap;
-import java.util.LinkedHashMap;
+import java.util.*;
 
 public class FunctionSymbol extends Symbol {
     private ArrayList<DuplicateSymbolException> parameterExceptions;
     protected final ParameterSymbol[] arguments;
     protected final Scope<VariableSymbol> variableScope;
+    private int varCount = 0;
+    private int floatParameterCount = 0;
+    private final Map<VariableSymbol, Integer> indices = new LinkedHashMap<>();
+    private final Map<ParameterSymbol, Integer> paramIndices = new LinkedHashMap<>();
 
     public ParameterSymbol[] getArguments() {
         return arguments;
@@ -48,12 +49,16 @@ public class FunctionSymbol extends Symbol {
         super(type, name);
         variableScope = new Scope<>(enclosingVariableScope, null, VariableSymbol::new);
         var list = new ArrayList<ParameterSymbol>(argumentsMap.size());
+        var i = 0;
         for (var entry : argumentsMap.entrySet()) {
             var argument = entry.getValue();
             try {
                 variableScope.define(argument);
                 argument.setFunction(this);
                 list.add(argument);
+                addVariable(argument);
+                paramIndices.put(argument, i);
+                i += 1;
             } catch (DuplicateSymbolException exception) {
                 if (parameterExceptions == null) {
                     parameterExceptions = new ArrayList<>();
@@ -65,6 +70,28 @@ public class FunctionSymbol extends Symbol {
             }
         }
         this.arguments = list.toArray(ParameterSymbol[]::new);
+    }
+
+    public void addVariable(VariableSymbol symbol){
+        if (arguments != null && indices.size() == arguments.length)
+            varCount += floatParameterCount;
+
+        indices.put(symbol, varCount);
+        varCount++;
+
+        if (symbol.getType() != OfpType.FLOAT)
+            return;
+
+        if (!(symbol instanceof ParameterSymbol)) {
+            varCount++;
+            return;
+        }
+
+        floatParameterCount++;
+    }
+
+    public int indexOf(VariableSymbol sym) {
+        return indices.get(sym);
     }
 
     @Override
