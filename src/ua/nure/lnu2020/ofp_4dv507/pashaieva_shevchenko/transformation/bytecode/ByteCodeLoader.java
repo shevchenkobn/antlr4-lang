@@ -5,8 +5,9 @@ import java.lang.reflect.InvocationTargetException;
 public class ByteCodeLoader extends ClassLoader {
     public void load(byte[] code, String className){
         Class<?> exampleClass = this.defineClass(className, code, 0, code.length);
+        resolveClass(exampleClass);
         try {
-            exampleClass.getMethods()[0].invoke(null, null);
+            exampleClass.getMethods()[0].invoke(null);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         } catch (InvocationTargetException e) {

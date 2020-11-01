@@ -171,7 +171,7 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
             visit(expr);
         }
 
-        generatorAdapter.invokeStatic(Type.getType("LProgram;"), Method.getMethod(methodSignature));
+        generatorAdapter.invokeStatic(Type.getType("L" + className + ";"), Method.getMethod(methodSignature));
 
         if (function.getType() == null)
             return Type.VOID_TYPE;
