@@ -182,6 +182,7 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
     @Override
     public Type visitReturnExpr(OfpPashaievaShevchenkoParser.ReturnExprContext ctx) {
         visit(ctx.expr());
+        generatorAdapter.returnValue();
         return null;
     }
 
@@ -490,6 +491,32 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
     }
 
     private void exitMethod() {
+        var type = functionSymbol.getType();
+        if (type != null) {
+            switch (type) {
+                case INT:
+                    generatorAdapter.push(0);
+                    break;
+                case FLOAT:
+                    generatorAdapter.push(0.0d);
+                    break;
+                case CHAR:
+                    generatorAdapter.push(' ');
+                    break;
+                case STRING:
+                    generatorAdapter.push(" ");
+                    break;
+                case INT_ARR:
+                    initArray(0, Type.INT_TYPE, Type.getType(int[].class), new ParserRuleContext[] {});
+                    break;
+                case FLOAT_ARR:
+                    initArray(0, Type.FLOAT_TYPE, Type.getType(double[].class), new ParserRuleContext[] {});
+                    break;
+                case CHAR_ARR:
+                    initArray(0, Type.CHAR_TYPE, Type.getType(char[].class), new ParserRuleContext[] {});
+                    break;
+            }
+        }
         generatorAdapter.returnValue();
         generatorAdapter.endMethod();
     }
@@ -637,4 +664,6 @@ public class BytecodeGenerator extends BaseOfpVisitor<Type> {
                 .map(x->OfpTypeToJavaType.get(x.getType().getName()))
                 .toArray(String[]::new));
     }
+
+
 }
