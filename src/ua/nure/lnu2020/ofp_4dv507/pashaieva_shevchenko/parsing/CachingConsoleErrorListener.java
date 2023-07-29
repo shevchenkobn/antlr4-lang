@@ -7,7 +7,7 @@ import org.antlr.v4.runtime.Recognizer;
 import java.util.ArrayList;
 
 public class CachingConsoleErrorListener extends ConsoleErrorListener {
-    protected ArrayList<SyntaxError> errors = new ArrayList<>();
+    protected final ArrayList<SyntaxError> errors = new ArrayList<>();
 
     public ArrayList<SyntaxError> getErrors() {
         return errors;

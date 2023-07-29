@@ -10,7 +10,7 @@ import org.objectweb.asm.util.TraceClassVisitor;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.OfpSourceCodeException;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.listeners.BaseOfpListener;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.parsing.*;
-import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.listeners.CheckRefListener;
+import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.listeners.InitializeSymbolsAndCheckReferencesListener;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.Scope;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.listeners.SymbolTableConstructionListener;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.FunctionSymbol;
@@ -87,8 +87,7 @@ public class Main {
                     }
 
                     foundErrors = processErrors(pythonGenerator.getErrors(), "\n\nUnexpected errors during Python code generation:");
-                }
-                if (args[1].endsWith("class")){
+                } else if (args[1].endsWith("class")) {
                     System.out.println("\nGenerating Java bytecode...");
                     BytecodeGenerator bytecodeGenerator;
                     var file = new File(args[1]);
@@ -111,8 +110,7 @@ public class Main {
                     }
 
                     foundErrors = processErrors(bytecodeGenerator.getErrors(), "\n\nUnexpected errors during Java bytecode generation:");
-                }
-                else {
+                } else {
                     System.err.printf("Couldn't infer target language by file extension in '%s'\n", args[1]);
                     System.exit(1);
                 }
@@ -133,7 +131,7 @@ public class Main {
     private static BaseOfpListener[] getListeners(Scope<FunctionSymbol> globalScope){
         return new BaseOfpListener[] {
                 new SymbolTableConstructionListener(globalScope),
-                new CheckRefListener(globalScope)
+                new InitializeSymbolsAndCheckReferencesListener(globalScope)
         };
     }
 

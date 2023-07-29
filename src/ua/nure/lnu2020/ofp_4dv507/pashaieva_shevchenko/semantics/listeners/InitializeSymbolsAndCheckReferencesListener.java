@@ -10,19 +10,13 @@ import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.Symb
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.FunctionSymbol;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.VariableSymbol;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
-public class CheckRefListener extends BaseOfpListener {
+public class InitializeSymbolsAndCheckReferencesListener extends BaseOfpListener {
 
     private Scope<VariableSymbol> currentScope;
     private FunctionSymbol currentFunction;
-    private Map<Scope<VariableSymbol>, Set<String>> scopeVarInits = new LinkedHashMap<>();
     private boolean isFirstBlock = false;
 
-    public CheckRefListener(Scope<FunctionSymbol> globalScope) {
+    public InitializeSymbolsAndCheckReferencesListener(Scope<FunctionSymbol> globalScope) {
         super(globalScope);
     }
 
@@ -161,7 +155,7 @@ public class CheckRefListener extends BaseOfpListener {
         String variableName = variable.getText();
         try {
             currentScope.resolve(variableName);
-            checkVariableInit(variableName, currentScope);
+            checkVariableInit(variableName);
         } catch (SymbolNotDeclaredException | SymbolNotInitializedException exception) {
             var token = variable.getSymbol();
             exception.setSourceCodeLine(token.getLine());
@@ -170,16 +164,16 @@ public class CheckRefListener extends BaseOfpListener {
         }
     }
 
-    private void checkVariableInit(String variableName, Scope<VariableSymbol> scope){
-        if (scope == null){
-            throw new SymbolNotInitializedException(variableName);
+    private void checkVariableInit(String variableName){
+        var scope = currentScope;
+        while (scope != null) {
+            var v = scope.resolve(variableName);
+            if (v != null && v.isInitialized()) {
+                return;
+            }
+            scope = scope.getEnclosingScope();
         }
-
-        Set<String> scopeInits = scopeVarInits.get(scope);
-        if (scopeInits != null && scopeInits.contains(variableName))
-            return;
-
-        checkVariableInit(variableName, scope.getEnclosingScope());
+        throw new SymbolNotInitializedException(variableName);
     }
 
     private void addVariableInit(ParserRuleContext ctx){
@@ -198,11 +192,7 @@ public class CheckRefListener extends BaseOfpListener {
         addVariableInit(variableName);
     }
 
-    private void addVariableInit(String variableName){
-        if (!scopeVarInits.containsKey(currentScope)) {
-            scopeVarInits.put(currentScope, new LinkedHashSet<>());
-        }
-
-        scopeVarInits.get(currentScope).add(variableName);
+    private void addVariableInit(String variableName) {
+        currentScope.resolve(variableName).initialize();
     }
 }

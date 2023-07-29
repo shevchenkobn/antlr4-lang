@@ -25,7 +25,7 @@ import static org.objectweb.asm.Opcodes.*;
 
 public class BytecodeGenerator extends BaseOfpVisitor<Type> {
 
-    private ClassWriter classWriter;
+    private final ClassWriter classWriter;
     private GeneratorAdapter generatorAdapter;
     private static final Map<OfpType, Type> OfpTypeToASMType = new HashMap<>();
     private static final Map<String, String> OfpTypeToJavaType = new HashMap<>();

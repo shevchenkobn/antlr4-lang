@@ -47,8 +47,7 @@ public class TypeCheckingVisitor extends BaseOfpVisitor<OfpType> {
         PrintableTypes.add(OfpType.STRING);
     }
 
-    public TypeCheckingVisitor(Scope<FunctionSymbol> globalScope)
-    {
+    public TypeCheckingVisitor(Scope<FunctionSymbol> globalScope) {
         super(globalScope);
     }
 
@@ -112,7 +111,7 @@ public class TypeCheckingVisitor extends BaseOfpVisitor<OfpType> {
         if (ctx.TRUE() != null || ctx.FALSE() != null)
             return OfpType.BOOL;
 
-        if (ctx.children.size() > 2 && ctx.getChild(1) instanceof TerminalNode){
+        if (ctx.children.size() > 2 && ctx.getChild(1) instanceof TerminalNode) {
             ParseTree leftExpression = ctx.getChild(0);
             ParseTree rightExpression = ctx.getChild(2);
 
@@ -127,7 +126,7 @@ public class TypeCheckingVisitor extends BaseOfpVisitor<OfpType> {
             if ((ctx.GT() != null || ctx.LT() != null)
                     && leftExpressionType != null && leftExpressionType != OfpType.INT && leftExpressionType != OfpType.FLOAT)
                 addError(leftExpressionType,
-                        new OfpType[] {OfpType.INT, OfpType.FLOAT},
+                        new OfpType[]{OfpType.INT, OfpType.FLOAT},
                         leftExpression);
 
             checkExpression(leftExpressionType, rightExpressionType, rightExpression);
@@ -406,7 +405,7 @@ public class TypeCheckingVisitor extends BaseOfpVisitor<OfpType> {
     }
 
     private void addError(OfpType realType, OfpType expectedType, ParseTree node) {
-        addError(realType, new OfpType[] { expectedType }, node);
+        addError(realType, new OfpType[]{expectedType}, node);
     }
 
     private void addError(OfpType realType, OfpType[] expectedTypes, ParseTree node) {
@@ -421,9 +420,9 @@ public class TypeCheckingVisitor extends BaseOfpVisitor<OfpType> {
 
     private Token getToken(ParseTree node) {
         if (node instanceof OfpPashaievaShevchenkoParser.VariableContext) {
-            return ((TerminalNode)node.getChild(0)).getSymbol();
+            return ((TerminalNode) node.getChild(0)).getSymbol();
         } else if (node instanceof TerminalNode) {
-             ((TerminalNode) node).getSymbol();
+            ((TerminalNode) node).getSymbol();
         } else {
             var currentNode = node;
 //            node instanceof OfpPashaievaShevchenkoParser.IntExprContext
@@ -433,12 +432,12 @@ public class TypeCheckingVisitor extends BaseOfpVisitor<OfpType> {
             while (!(currentNode instanceof TerminalNode)) {
                 int i = 0;
                 if (node instanceof OfpPashaievaShevchenkoParser.PrintableContext
-                    || node instanceof OfpPashaievaShevchenkoParser.ArrGetContext) {
+                        || node instanceof OfpPashaievaShevchenkoParser.ArrGetContext) {
                     i = currentNode.getChildCount() - 1;
                 }
                 currentNode = currentNode.getChild(i);
             }
-            return ((TerminalNode)currentNode).getSymbol();
+            return ((TerminalNode) currentNode).getSymbol();
         }
         System.out.println(node);
         return null;

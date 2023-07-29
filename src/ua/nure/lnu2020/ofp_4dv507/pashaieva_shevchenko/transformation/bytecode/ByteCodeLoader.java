@@ -8,9 +8,7 @@ public class ByteCodeLoader extends ClassLoader {
         resolveClass(exampleClass);
         try {
             exampleClass.getMethods()[0].invoke(null, new Object[] { new String[0] });
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
+        } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
     }

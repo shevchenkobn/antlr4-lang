@@ -43,7 +43,8 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
     });
 
     private final PythonIdController idController;
-    private Appendable output;
+    private final AppendableSpy output;
+    private int lastAppendCalled;
     private int depth = 0;
     private final Map<Integer,String> indentCache = new HashMap<>();
     private final TypeCheckingVisitor typeChecker;
@@ -58,15 +59,11 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
         for (var function : globalScope.getSymbols()) {
             idController.defineFunction(function.getName());
         }
-        this.output = output;
+        this.output = new AppendableSpy(output);
     }
 
     public Appendable getOutput() {
         return output;
-    }
-
-    public void setOutput(Appendable output) {
-        this.output = output;
     }
 
     @Override
@@ -351,7 +348,6 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
     @Override
     public Void visitIntExpr(OfpPashaievaShevchenkoParser.IntExprContext ctx) {
         try {
-            // TODO: combine this method with float expr
             var hasUnaryMinus = ctx.MINUS() == ctx.getChild(0);
             if (hasUnaryMinus) {
                 output.append('-');
@@ -397,7 +393,6 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
     @Override
     public Void visitFloatExpr(OfpPashaievaShevchenkoParser.FloatExprContext ctx) {
         try {
-            // TODO: combine this method with float expr
             var hasUnaryMinus = ctx.MINUS() == ctx.getChild(0);
             if (hasUnaryMinus) {
                 output.append('-');
@@ -625,11 +620,11 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
         visit(ctx.getChild(2));
         output.append(":\n");
 
-        appendStatOrBlockOrPass((ParserRuleContext)ctx.getChild(4));
+        appendStatOrBlockOrPass(ctx.getChild(4));
 
         if (ctx.getChildCount() > 5) {
             output.append(getIndent()).append("else:\n");
-            appendStatOrBlockOrPass((ParserRuleContext)ctx.getChild(6));
+            appendStatOrBlockOrPass(ctx.getChild(6));
         }
     }
 
@@ -638,20 +633,20 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
         visit(ctx.getChild(2));
         output.append(":\n");
 
-        appendStatOrBlockOrPass((ParserRuleContext)ctx.getChild(4));
+        appendStatOrBlockOrPass(ctx.getChild(4));
     }
 
     private void appendBlock(ParserRuleContext ctx) throws IOException {
         enterBlock(ctx);
-        if (ctx.getChildCount() == 2
-                || ctx.getChildCount() == 3 && DECL_STATEMENTS_CLASSES.contains(ctx.getChild(1).getClass())) {
+        lastAppendCalled = output.getAppendCalled();
+        visitChildren(ctx);
+        if (lastAppendCalled == output.getAppendCalled()) {
             appendPass();
         }
-        visitChildren(ctx);
         exitBlock(ctx);
     }
 
-    private void enterBlock(ParserRuleContext ctx) throws IOException {
+    private void enterBlock(ParserRuleContext ctx) {
         depth += 1;
 
         if (currentScope == null) {
@@ -663,15 +658,18 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
     }
 
     private void exitBlock(ParserRuleContext ctx) throws IOException {
-        currentScope = currentScope.getEnclosingScope();
-        if (currentScope != null) {
-            var scopedVariables = idController.getScopeDefinedVariables();
+        var enclosingScope = currentScope.getEnclosingScope();
+        if (enclosingScope != null) {
+            var scopedVariables = idController.getScopeDefinedVariables()
+                    .filter(e -> currentScope.get(e.getKey()).isInitialized())
+                    .map(e -> e.getValue().getId()).toArray(String[]::new);
             if (scopedVariables.length > 0) {
                 output.append(getIndent()).append("del ")
-                        .append(String.join(", ", idController.getScopeDefinedVariables())).append("\n");
+                        .append(String.join(", ", scopedVariables)).append("\n");
             }
             idController.exitScope();
         }
+        currentScope = enclosingScope;
         depth -= 1;
     }
 
@@ -713,7 +711,11 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
             if (DECL_STATEMENTS_CLASSES.contains(stat.getClass())) {
                 appendPass();
             } else {
+                lastAppendCalled = output.getAppendCalled();
                 visit(statWrapper);
+                if (lastAppendCalled == output.getAppendCalled()) {
+                    appendPass();
+                }
             }
             depth -= 1;
             return;
@@ -727,5 +729,39 @@ public class PythonCodeGenerator extends BaseOfpVisitor<Void> {
 
     private String getIndent() {
         return indentCache.computeIfAbsent(depth, "    "::repeat);
+    }
+
+    private static class AppendableSpy implements Appendable {
+        final private Appendable output;
+        private int appendCalled;
+
+        public int getAppendCalled() {
+            return appendCalled;
+        }
+
+        AppendableSpy(Appendable output) {
+            this.output = output;
+        }
+
+        @Override
+        public Appendable append(CharSequence charSequence) throws IOException {
+            appendCalled += 1;
+            output.append(charSequence);
+            return this;
+        }
+
+        @Override
+        public Appendable append(CharSequence charSequence, int i, int i1) throws IOException {
+            appendCalled += 1;
+            output.append(charSequence, i, i1);
+            return this;
+        }
+
+        @Override
+        public Appendable append(char c) throws IOException {
+            appendCalled += 1;
+            output.append(c);
+            return this;
+        }
     }
 }

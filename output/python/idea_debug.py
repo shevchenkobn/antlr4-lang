@@ -1,3 +1,14 @@
+def uninitVars():
+    i = 4
+    if i > 0:
+        if True:
+            pass
+
+
+def uninitVarsTwo():
+    pass
+
+
 def ofp_id(id_1):
     if id_1 == 0:
         return id_1
@@ -157,3 +168,5 @@ print(len(ofp_str))
 print(-ceilDiv(4, 3) * -345 - -43 - 3)
 print(notCeilDiv(4.0, 3.0) * 3.45)
 print(someBool())
+uninitVars()
+uninitVarsTwo()

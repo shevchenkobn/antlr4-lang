@@ -15,7 +15,6 @@ public class FunctionSymbol extends Symbol {
     private int varCount = 0;
     private int floatParameterCount = 0;
     private final Map<VariableSymbol, Integer> indices = new LinkedHashMap<>();
-    private final Map<ParameterSymbol, Integer> paramIndices = new LinkedHashMap<>();
 
     public ParameterSymbol[] getArguments() {
         return arguments;
@@ -57,7 +56,6 @@ public class FunctionSymbol extends Symbol {
                 argument.setFunction(this);
                 list.add(argument);
                 addVariable(argument);
-                paramIndices.put(argument, i);
                 i += 1;
             } catch (DuplicateSymbolException exception) {
                 if (parameterExceptions == null) {
@@ -119,6 +117,7 @@ public class FunctionSymbol extends Symbol {
 
         public ParameterSymbol(OfpType type, String name) {
             super(type, name);
+            initialize();
         }
     }
 }

@@ -1,3 +1,9 @@
+Install ANTLR4:
+```shell
+cd "<absolute_project_root>"
+alias antlr4="java -Xmx500M -cp \"$(realpath .)/lib/antlr-4.8-complete.jar:\$CLASSPATH\" org.antlr.v4.Tool"
+```
+
 To scaffold a proper ANTLR project run the following from the project root:
 ```shell
 cd ./grammar

@@ -1,3 +1,18 @@
+void uninitVars() {
+    int i = 4;
+    if (i > 0) {
+        char i; # OK - nested scope
+        if (true) {
+            float[] i; # OK - nested scope
+        }
+    }
+}
+
+void uninitVarsTwo() {
+    int a;
+    float b;
+}
+
 # test duplicate identifiers (with or without python collisions
 # fibbonacci actually
 int id(int id) {
@@ -129,6 +144,10 @@ void main() {
     println(-ceilDiv(4, 3) * -345 - -43 - 3);
     println(notCeilDiv(4.0, 3.0) * 3.45);
     println(someBool());
+
+    # uninitialized variables test
+    uninitVars();
+    uninitVarsTwo();
 }
 
 int sum(int x, char dummyParameter) {

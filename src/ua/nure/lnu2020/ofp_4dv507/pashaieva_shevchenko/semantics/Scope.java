@@ -4,7 +4,6 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.DuplicateSymbolException;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.exceptions.SymbolNotDeclaredException;
 import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.Symbol;
-import ua.nure.lnu2020.ofp_4dv507.pashaieva_shevchenko.semantics.symbols.VariableSymbol;
 
 import java.io.IOException;
 import java.util.*;
@@ -56,6 +55,10 @@ public class Scope<S extends Symbol> {
         symbols.put(sym.getName(), sym);
     }
 
+    public S get(String name) {
+        return symbols.get(name);
+    }
+
     public S tryResolve(String name) {
         try {
             return resolve(name);
@@ -84,6 +87,7 @@ public class Scope<S extends Symbol> {
 
     private void toAppendable(Appendable appendable, boolean pretty, boolean goUp, boolean goDown, CharSequence indentation, CharSequence indentationItem) throws IOException {
         appendable.append(getClass().getSimpleName()).append('{');
+        String humanIndent = indentation.toString() + indentationItem.toString() + indentationItem;
         if (goUp && enclosingScope != null) {
             if (pretty) {
                 appendable.append("\n").append(indentation).append(indentationItem);
@@ -93,7 +97,7 @@ public class Scope<S extends Symbol> {
                     appendable,
                     pretty,true,
                     false,
-                    pretty ? indentation.toString() + indentationItem.toString() + indentationItem.toString() : indentation,
+                    pretty ? humanIndent : indentation,
                     indentationItem);
             appendable.append(',');
             if (!pretty) {
@@ -151,7 +155,7 @@ public class Scope<S extends Symbol> {
                             pretty,
                             false,
                             true,
-                            pretty ? indentation.toString() + indentationItem.toString() + indentationItem.toString() : indentation,
+                            pretty ? humanIndent : indentation,
                             indentationItem);
                     first = false;
                 }

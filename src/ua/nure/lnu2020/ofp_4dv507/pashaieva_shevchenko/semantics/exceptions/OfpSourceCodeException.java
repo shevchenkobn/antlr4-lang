@@ -40,7 +40,7 @@ public class OfpSourceCodeException extends IllegalStateException {
                 return String.format("line %d %s", sourceCodeLine, toStringDo());
             }
         }
-        if (sourceCodeLine > 0 && sourceCodeCharacterInLineIndex >= 0) {
+        if (sourceCodeLine > 0) {
             return String.format("line %d:%d %s", sourceCodeLine, sourceCodeCharacterInLineIndex, toStringDo());
         }
         return toStringDo();
